@@ -7,5 +7,5 @@ class Listable:
     """
 
     @abstractmethod
-    def list_contents(self):
+    def list_contents(self, show_hidden: bool = False):
         pass

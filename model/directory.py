@@ -80,10 +80,16 @@ class Directory(Listable, Entry):
 
     # # # # # # # # # # # # # # # # # # # #
 
-    def list_contents(self):
+    def list_contents(self, show_hidden: bool = False):
         """Returns a newline-separated string of the names of the
-        Entries contained within this Directory"""
-        return "\n".join([entry.get_name() for entry in self.get_entries()])
+        Entries contained within this Directory.
+
+        :param show_hidden: Whether or not to show hidden files or directories
+        """
+        return "\n".join([
+            entry.get_name()
+            for entry in self.get_entries()
+            if not entry.is_hidden() or show_hidden])
 
     def to_json(self) -> dict:
         return {
