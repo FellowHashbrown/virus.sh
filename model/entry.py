@@ -21,7 +21,7 @@ class Entry(Serializable, Sizable):
         self.__name: str = name
 
     def __str__(self):
-        return f"Entry(\"{self.get_name()}\")"
+        return f"Entry(\"{self.get_name()}\", size: {self.get_size()} bytes)"
 
     def __lt__(self, other: 'Entry'):
         return self.get_name() < other.get_name()
