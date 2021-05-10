@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 class Serializable:
     """An abstract class that child classes must implement
-    the abstract methods for JSON conversion and extraction
+    for JSON conversion and extraction
     """
 
     @staticmethod
