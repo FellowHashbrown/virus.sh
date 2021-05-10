@@ -33,7 +33,7 @@ class VirusFile(NormalFile):
             "type": "VirusFile",
             "number": self.get_number(),
             "name": self.get_name(),
-            "lines": self.get_lines()}
+            "size": self.get_size()}
 
     @staticmethod
     def from_json(json: dict):
