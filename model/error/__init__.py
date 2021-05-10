@@ -1,1 +1,1 @@
-from .invalid_filename_error import InvalidFilenameError
+from .invalid_name_error import InvalidNameError
