@@ -1,7 +1,8 @@
-from model import Serializable, InvalidNameError
+from model.abstract import Serializable, Sizable
+from model.error import InvalidNameError
 
 
-class Entry(Serializable):
+class Entry(Serializable, Sizable):
     """The Entry class is the parent class for Directory, NormalFile, and VirusFile
     in the game.
 
@@ -64,7 +65,9 @@ class Entry(Serializable):
     # # # # # # # # # # # # # # # # # # # #
 
     def to_json(self) -> dict:
-        return {"type": "Entry", "name": self.get_name()}
+        return {
+            "type": "Entry",
+            "name": self.get_name()}
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -77,7 +80,7 @@ class Entry(Serializable):
         :raises KeyError: When the Entry's name is not specified in the JSON object
         """
         if json["type"] != "Entry":
-            raise TypeError(f"Type of JSON object must match (\"{json['type']}\" != \"Entry\"")
+            raise TypeError(f"Type of JSON object must match (\"{json['type']}\" != \"Entry\")")
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create Entry object")
         return Entry(json["name"])
