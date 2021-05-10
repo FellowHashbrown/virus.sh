@@ -1,9 +1,5 @@
-from model.abstract import Serializable
-
-from model.error import InvalidNameError
-
-from model.file import Entry
-from model.file import NormalFile
-from model.file import VirusFile
-from model.file import Trash
-from model.file import Directory
+from model.entry import Entry
+from model.normal_file import NormalFile
+from model.virus_file import VirusFile
+from model.directory import Directory
+from model.trash import Trash
