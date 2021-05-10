@@ -1,5 +1,4 @@
-from model import Serializable
-from model.error import InvalidNameError
+from model import Serializable, InvalidNameError
 
 
 class Entry(Serializable):
@@ -22,6 +21,24 @@ class Entry(Serializable):
 
     def __str__(self):
         return f"Entry(\"{self.get_name()}\")"
+
+    def __lt__(self, other: 'Entry'):
+        return self.get_name() < other.get_name()
+
+    def __le__(self, other: 'Entry'):
+        return self.get_name() <= other.get_name()
+
+    def __gt__(self, other: 'Entry'):
+        return self.get_name() > other.get_name()
+
+    def __ge__(self, other: 'Entry'):
+        return self.get_name() >= other.get_name()
+
+    def __eq__(self, other: 'Entry'):
+        return self.get_name() == other.get_name()
+
+    def __ne__(self, other: 'Entry'):
+        return self.get_name() != other.get_name()
 
     # # # # # # # # # # # # # # # # # # # #
 
