@@ -7,6 +7,7 @@ from model.abstract import Listable
 class Directory(Listable, Entry):
     """The Directory class is the structure that acts as an actual Directory
     on a filesystem that can hold Files and other Directories
+
     :param name: The name to give to the Directory
     :param entries: The list of Entry objects to put inside of the Directory
     """
@@ -18,7 +19,7 @@ class Directory(Listable, Entry):
         self.__entries = entries
 
     def __str__(self):
-        return "Directory(\"\")"
+        return f"Directory(\"{self.get_name()}\", size: {self.get_size()} bytes)"
 
     # # # # # # # # # # # # # # # # # # # #
 
