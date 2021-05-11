@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 from model import Directory
 from model.error import InvalidNameError
@@ -15,6 +15,24 @@ class Save:
     :raises InvalidNameError: When the username has an invalid path character
     """
 
+    @staticmethod
+    def load_saves() -> List['Save']:
+        """Loads all the saves from the Save folder and returns them in a list"""
+
+        files = []
+        for entry in os.listdir(Save.SAVE_FOLDER):
+            if os.path.isfile(f"{Save.SAVE_FOLDER}/{entry}"):
+                username = entry[:entry.find(".")]
+                files.append(Save(username))
+        saves = []
+        for i in range(len(files)):
+            try:
+                saves.append(files[i])
+                saves[i].load()
+            except FileNotFoundError:
+                print(f"issue loading {files[i].get_username()}")
+        return saves
+
     INVALID_CHARS = "?&:;|[]*,\""
     SAVE_FOLDER = f"{Path.home()}/virus.shSaves"
 
@@ -23,11 +41,18 @@ class Save:
             if username.find(invalid_char) != -1:
                 raise InvalidNameError(f"{invalid_char} cannot exist in username.")
         self.__username = username
+        self.__root = None
+        self.__virus_files = self.__deleted_virus_files = 0
+        self.__normal_files = self.__deleted_normal_files = 0
+
+    def generate(self):
+        """Tells the Save object to create a new game save with the
+        specified username
+        """
         self.__root, total_files = generate_filesystem()
-        self.__virus_files = total_files // 1000
-        self.__deleted_virus_files = 0
         self.__normal_files = total_files
-        self.__deleted_normal_files = 0
+        self.__virus_files = total_files // 1000
+        self.save()
 
     def get_username(self) -> str:
         """Returns the username for the game save"""
