@@ -1,7 +1,3 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from model import Directory
-
 from model.abstract import Serializable, Sizable
 from model.error import InvalidNameError
 
@@ -18,7 +14,7 @@ class Entry(Serializable, Sizable):
 
     # # # # # # # # # # # # # # # # # # # #
 
-    def __init__(self, name: str, parent: Directory = None):
+    def __init__(self, name: str, parent: 'Directory' = None):
         for invalid_char in Entry.INVALID_CHARS:
             if name.find(invalid_char) != -1:
                 raise InvalidNameError(f"{invalid_char} cannot exist in entry name.")
@@ -52,9 +48,9 @@ class Entry(Serializable, Sizable):
         """Sets the name of the Entry"""
         self.__name: str = name
 
-    def set_parent(self, parent: Directory):
+    def set_parent(self, parent: 'Directory'):
         """Sets the parent Directory of this Entry"""
-        self.__parent: Directory = parent
+        self.__parent= parent
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -62,7 +58,7 @@ class Entry(Serializable, Sizable):
         """Returns the name of this Entry"""
         return self.__name
 
-    def get_parent(self) -> Directory:
+    def get_parent(self) -> 'Directory':
         """Returns the parent Directory of this Entry"""
         return self.__parent
 
@@ -93,7 +89,4 @@ class Entry(Serializable, Sizable):
             raise TypeError(f"Type of JSON object must match (\"{json['type']}\" != \"Entry\")")
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create Entry object")
-        parent = json.get("parent", None)
-        if parent:
-            parent = Directory.from_json(parent)
-        return Entry(json["name"], parent)
+        return Entry(json["name"])
