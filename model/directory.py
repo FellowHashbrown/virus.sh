@@ -30,6 +30,12 @@ class Directory(Listable, Entry):
             total_size += entry.get_size()
         return total_size
 
+    def get_entry(self, entry: str) -> Optional[Union['Directory', NormalFile, VirusFile]]:
+        """Returns the Entry object given by the specified entry"""
+        for e in self.get_entries():
+            if e.get_name() == entry:
+                return e
+
     def get_entries(self) -> List[Entry]:
         """Returns the list of Entries in this Directory"""
         return list(self.__entries)
@@ -79,6 +85,10 @@ class Directory(Listable, Entry):
         self.__entries.remove(target)
         return target
 
+    def add_entries(self, *entries: Entry):
+        for entry in entries:
+            self.add_entry(entry)
+
     # # # # # # # # # # # # # # # # # # # #
 
     def list_contents(self, show_hidden: bool = False):
@@ -87,10 +97,13 @@ class Directory(Listable, Entry):
 
         :param show_hidden: Whether or not to show hidden files or directories
         """
-        return "\n".join([
-            entry.get_name()
-            for entry in self.get_entries()
-            if not entry.is_hidden() or show_hidden])
+        contents = []
+        if show_hidden:
+            contents.extend([".", ".."])
+        for entry in self.get_entries():
+            if not entry.is_hidden() or show_hidden:
+                contents.append(entry.get_name())
+        return "\n".join(contents)
 
     def to_json(self) -> dict:
         return {
