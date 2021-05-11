@@ -1,3 +1,7 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from model import Directory
+
 from model.abstract import Serializable, Sizable
 from model.error import InvalidNameError
 
@@ -14,11 +18,12 @@ class Entry(Serializable, Sizable):
 
     # # # # # # # # # # # # # # # # # # # #
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, parent: Directory = None):
         for invalid_char in Entry.INVALID_CHARS:
             if name.find(invalid_char) != -1:
                 raise InvalidNameError(f"{invalid_char} cannot exist in entry name.")
         self.__name: str = name
+        self.__parent = parent
 
     def __str__(self):
         return f"Entry(\"{self.get_name()}\", size: {self.get_size()} bytes)"
@@ -44,17 +49,22 @@ class Entry(Serializable, Sizable):
     # # # # # # # # # # # # # # # # # # # #
 
     def set_name(self, name: str):
-        """Sets the name of the Entry
-
-        :param name: The name to rename the Entry to
-        """
+        """Sets the name of the Entry"""
         self.__name: str = name
+
+    def set_parent(self, parent: Directory):
+        """Sets the parent Directory of this Entry"""
+        self.__parent: Directory = parent
 
     # # # # # # # # # # # # # # # # # # # #
 
     def get_name(self) -> str:
         """Returns the name of this Entry"""
         return self.__name
+
+    def get_parent(self) -> Directory:
+        """Returns the parent Directory of this Entry"""
+        return self.__parent
 
     def is_hidden(self) -> bool:
         """Returns whether or not this Entry is hidden which is True
@@ -83,4 +93,7 @@ class Entry(Serializable, Sizable):
             raise TypeError(f"Type of JSON object must match (\"{json['type']}\" != \"Entry\")")
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create Entry object")
-        return Entry(json["name"])
+        parent = json.get("parent", None)
+        if parent:
+            parent = Directory.from_json(parent)
+        return Entry(json["name"], parent)

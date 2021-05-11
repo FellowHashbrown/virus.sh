@@ -12,8 +12,8 @@ class Directory(Listable, Entry):
     :param entries: The list of Entry objects to put inside of the Directory
     """
 
-    def __init__(self, name: str, entries: List[Entry] = None):
-        super().__init__(name)
+    def __init__(self, name: str, entries: List[Entry] = None, parent: 'Directory' = None):
+        super().__init__(name, parent)
         if entries is None:
             entries = []
         self.__entries = entries
@@ -127,4 +127,8 @@ class Directory(Listable, Entry):
             else:
                 raise ValueError(f"\"{entry['type']}\" not recognized as an Entry type")
         entries.sort()
-        return Directory(json["name"], entries)
+
+        dir_obj = Directory(json["name"], entries)
+        for entry in entries:
+            entry.set_parent(dir_obj)
+        return dir_obj

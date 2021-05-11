@@ -1,7 +1,7 @@
-from random import randint
+from random import randint, seed
 from typing import List
 
-from model import Entry
+from model import Entry, Directory
 
 
 class NormalFile(Entry):
@@ -9,15 +9,18 @@ class NormalFile(Entry):
     file system that has lines of data inside it
 
     :param name: The name to give to the File
-    :param lines: The list of lines to put inside the File
+    :param parent: The parent Directory of this NormalFile
     """
 
-    def __init__(self, name: str, size: int = None):
-        super().__init__(name)
-        self.__size = randint(20, 1000) if size is None else size
-        file_bytes = []
+    MINIMUM_SIZE = 40
+    MAXIMUM_SIZE = 2000
+
+    def __init__(self, name: str, parent: Directory = None, size: int = None):
+        super().__init__(name, parent)
+        self.__size = randint(NormalFile.MINIMUM_SIZE, NormalFile.MAXIMUM_SIZE) if size is None else size
+        self._file_bytes = []
         for byte in range(self.__size):
-            file_bytes.append(randint(0, 255))
+            self._file_bytes.append(randint(0, 255))
 
     def __str__(self):
         return f"NormalFile(\"{self.get_name()}\", size: {self.get_size()} bytes)"
@@ -27,6 +30,10 @@ class NormalFile(Entry):
     def get_size(self) -> int:
         """Returns the size of this File (in bytes)"""
         return self.__size
+
+    def get_bytes(self) -> List[int]:
+        """Returns the bytes of this file"""
+        return list(self._file_bytes)
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -51,4 +58,4 @@ class NormalFile(Entry):
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create NormalFile object")
 
-        return NormalFile(json["name"], json.get("size"))
+        return NormalFile(json["name"], size=json.get("size"))

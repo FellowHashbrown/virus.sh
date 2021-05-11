@@ -1,6 +1,6 @@
 from typing import List
 
-from model import NormalFile
+from model import NormalFile, Directory
 
 
 class VirusFile(NormalFile):
@@ -10,12 +10,16 @@ class VirusFile(NormalFile):
 
     :param number: The number to give to the Virus File
     :param name: The name to give to the Virus File
-    :param lines: The list of lines to put inside the Virus File
+    :param parent: The parent directory of this VirusFile
     """
 
-    def __init__(self, number: int, name: str, lines: List[str] = None):
-        super().__init__(name, lines)
+    IDENTIFYING_BYTES = [124, 56, 198, 248, 119, 64, 87, 12]
+
+    def __init__(self, number: int, name: str, parent: Directory = None):
+        super().__init__(name, parent)
         self.__number = number
+        for byte in range(len(VirusFile.IDENTIFYING_BYTES)):
+            self._file_bytes[byte] = VirusFile.IDENTIFYING_BYTES[byte]
 
     def __str__(self):
         return f"VirusFile(\"{self.get_name()}\", size: {self.get_size()} bytes)"
@@ -50,4 +54,4 @@ class VirusFile(NormalFile):
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create VirusFile object")
 
-        return VirusFile(json["number"], json["name"], json.get("lines", []))
+        return VirusFile(json["number"], json["name"])
