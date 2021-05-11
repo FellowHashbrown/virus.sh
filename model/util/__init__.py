@@ -1,3 +1,5 @@
+from .hexable import Hexable
 from .filesystem import generate_filesystem
 from .save import Save
-from .command import ls, cd, rm, chunks, track, trace, mntr
+from .options import Options
+from .command import ls, cd, cat, rm, chunks, track, trace, mntr
