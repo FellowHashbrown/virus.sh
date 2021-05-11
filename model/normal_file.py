@@ -1,7 +1,9 @@
 from random import randint, seed
-from typing import List
+from typing import List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from model import Directory
 
-from model import Entry, Directory
+from model import Entry
 
 
 class NormalFile(Entry):
@@ -13,9 +15,9 @@ class NormalFile(Entry):
     """
 
     MINIMUM_SIZE = 40
-    MAXIMUM_SIZE = 2000
+    MAXIMUM_SIZE = 100
 
-    def __init__(self, name: str, parent: Directory = None, size: int = None):
+    def __init__(self, name: str, parent: 'Directory' = None, size: int = None):
         super().__init__(name, parent)
         self.__size = randint(NormalFile.MINIMUM_SIZE, NormalFile.MAXIMUM_SIZE) if size is None else size
         self._file_bytes = []

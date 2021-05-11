@@ -1,6 +1,8 @@
-from typing import List
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from model import Directory
 
-from model import NormalFile, Directory
+from model import NormalFile
 
 
 class VirusFile(NormalFile):
@@ -8,14 +10,14 @@ class VirusFile(NormalFile):
     filesystem that still has lines of data but also deletes files that are
     not other virus files in the filesystem
 
-    :param number: The number to give to the Virus File
-    :param name: The name to give to the Virus File
+    :param number: The number to give to the VirusFile
+    :param name: The name to give to the VirusFile
     :param parent: The parent directory of this VirusFile
     """
 
     IDENTIFYING_BYTES = [124, 56, 198, 248, 119, 64, 87, 12]
 
-    def __init__(self, number: int, name: str, parent: Directory = None):
+    def __init__(self, number: int, name: str, parent: 'Directory' = None):
         super().__init__(name, parent)
         self.__number = number
         for byte in range(len(VirusFile.IDENTIFYING_BYTES)):
