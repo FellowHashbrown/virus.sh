@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from model import Entry, NormalFile, VirusFile, Trash
+from model import Entry, NormalFile, VirusFile
 from model.abstract import Listable
 
 
@@ -122,8 +122,6 @@ class Directory(Listable, Entry):
                 entries.append(VirusFile.from_json(entry))
             elif entry["type"] == "Directory":
                 entries.append(Directory.from_json(entry))
-            elif entry["type"] == "Trash":
-                entries.append(Trash.from_json(entry))
             else:
                 raise ValueError(f"\"{entry['type']}\" not recognized as an Entry type")
         entries.sort()
