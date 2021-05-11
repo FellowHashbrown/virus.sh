@@ -1,11 +1,10 @@
 import os
-from json import dumps, loads
 from pathlib import Path
 from typing import Tuple
 
-from model.util.filesystem import generate_filesystem
 from model import Directory
 from model.error import InvalidNameError
+from model.util import generate_filesystem, Hexable
 
 
 class Save:
@@ -53,7 +52,7 @@ class Save:
         if not os.path.exists(Save.SAVE_FOLDER):
             os.mkdir(Save.SAVE_FOLDER)
 
-        save_json = dumps({
+        save_json = {
             "username": self.__username,
             "virus_files": {
                 "deleted": self.__deleted_virus_files,
@@ -64,39 +63,15 @@ class Save:
                 "total": self.__normal_files
             },
             "root": self.__root.to_json()
-        })
-
-        # Convert the JSON object into a list of hex bytes
-        result = []
-        for char in save_json:
-            result.append(hex(ord(char))[2:])
-
-        # Save the file separating each line of
-        with open(f"{Save.SAVE_FOLDER}/{self.__username}.hex", "w") as save_file:
-            total_processed = 0
-            for hex_byte in result:
-                save_file.write(hex_byte + " ")
-                total_processed += 1
-                if total_processed % 16 == 0:
-                    save_file.write("\n")
+        }
+        Hexable.save(save_json, f"{Save.SAVE_FOLDER}/{self.__username}.hex")
 
     def load(self):
         """Loads a save file based on the username, if it exists
 
         :raises FileNotFoundError: When the save file for the username does not exist
         """
-
-        if not os.path.exists(f"{Save.SAVE_FOLDER}/{self.__username}.hex"):
-            raise FileNotFoundError(f"The {self.__username} save file does not exist")
-
-        with open(f"{Save.SAVE_FOLDER}/{self.__username}.hex", "r") as save_file:
-            hex_data = "".join(save_file.readlines()).strip().split(" ")
-
-        # Convert the list of hex data bytes back into a JSON object
-        save_json = ""
-        for hex_byte in hex_data:
-            save_json += chr(int(hex_byte, 16))
-        save_json = loads(save_json)
+        save_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.__username}.hex")
 
         self.__deleted_virus_files = save_json["virus_files"]["deleted"]
         self.__virus_files = save_json["virus_files"]["total"]
