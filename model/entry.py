@@ -22,7 +22,9 @@ class Entry(Serializable, Sizable):
         self.__parent = parent
 
     def __str__(self):
-        return f"Entry(\"{self.get_name()}\", size: {self.get_size()} bytes)"
+        if self.__parent:
+            return f"{str(self.__parent)}/{self.__name}"
+        return self.__name
 
     def __lt__(self, other: 'Entry'):
         return self.get_name() < other.get_name()

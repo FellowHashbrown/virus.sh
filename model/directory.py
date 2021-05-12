@@ -18,9 +18,6 @@ class Directory(Listable, Entry):
             entries = []
         self.__entries = entries
 
-    def __str__(self):
-        return f"Directory(\"{self.get_name()}\", size: {self.get_size()} bytes)"
-
     # # # # # # # # # # # # # # # # # # # #
 
     def get_size(self) -> int:

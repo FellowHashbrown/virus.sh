@@ -23,9 +23,6 @@ class VirusFile(NormalFile):
         for byte in range(len(VirusFile.IDENTIFYING_BYTES)):
             self._file_bytes[byte] = VirusFile.IDENTIFYING_BYTES[byte]
 
-    def __str__(self):
-        return f"VirusFile(\"{self.get_name()}\", size: {self.get_size()} bytes)"
-
     # # # # # # # # # # # # # # # # # # # #
 
     def get_number(self) -> int:

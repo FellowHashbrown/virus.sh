@@ -24,9 +24,6 @@ class NormalFile(Entry):
         for byte in range(self.__size):
             self._file_bytes.append(randint(0, 255))
 
-    def __str__(self):
-        return f"NormalFile(\"{self.get_name()}\", size: {self.get_size()} bytes)"
-
     # # # # # # # # # # # # # # # # # # # #
 
     def get_size(self) -> int:
