@@ -43,12 +43,13 @@ def generate_virus(root_directory: Directory, n: int = 1):
     :param n: The amount of virus files to place
     """
     for virus in range(n):
-        choose_dir = randint(0, 100) % 2 == 0
+        choose_dir = randint(1, 100) % 2 == 0
         filename = generate_filename()
         if choose_dir:  # Choose a directory to move into to place the file
             target = choice(root_directory.get_entries())
             while not isinstance(target, Directory):
-                target = choice(root_directory.get_entries())
+                target= choice(root_directory.get_entries())
+            # noinspection PyTypeChecker
             generate_virus(target)  # Recursively call this but only place 1
         else:  # Place the file in the current directory
             root_directory.add_entry(VirusFile(virus + 1, filename, root_directory))
