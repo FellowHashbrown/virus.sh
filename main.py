@@ -3,6 +3,10 @@ from model.console import Console
 
 
 class ConsoleUI(Tk):
+    """The ConsoleUI manages all communication between the player and the game
+    This only mimics the console and filesystem and does not actually
+        use the filesystem of the user's machine
+    """
 
     def __init__(self):
         super().__init__()
@@ -11,7 +15,7 @@ class ConsoleUI(Tk):
         self.__console = Console()
 
         self.__text = Text(self)
-        self.__text.insert("end", f"{self.__console.get_prompt(False)}")
+        self.__text.insert("end", f"{self.__console.get_prompt()}")
         self.__text.configure(font=("Courier New", 15), bg="black", fg="white")
         self.__text.pack()
 
@@ -22,24 +26,30 @@ class ConsoleUI(Tk):
         self.__current_line = ""
 
     def on_key_press(self, event):
+        """Whenever a keyboard key is pressed"""
         self.__current_line += event.char
 
     def on_enter(self, _):
+        """Whenever the enter/return key is pressed"""
         result = self.__console.parse(self.__current_line)
         cleared = result == "@clear"
         if result:
             if result == "@clear":
                 self.__text.delete(1.0, "end")
+            elif result == "@exit":
+                self.__text.insert("end", "\nbye!")
+                exit(0)
             else:
                 self.__text.insert("end", f"\n{result}")
         if not cleared:
             self.__text.insert("end", "\n")
-        self.__text.insert("end", f"{self.__console.get_prompt(False)}")
+        self.__text.insert("end", f"{self.__console.get_prompt()}")
         self.__current_line = ""
         self.__text.see(END)
         return "break"
 
     def on_bs(self, _):
+        """Whenever the backspace key is pressed"""
         if len(self.__current_line) > 0:
             self.__current_line = self.__current_line[:-1]
             self.__text.delete("insert -1 chars", "insert")
