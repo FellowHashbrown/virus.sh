@@ -26,17 +26,18 @@ def ls(console, args):
         return console.get_current_dir().list_contents(options["show_hidden"]["value"])
     results = []
     for target in targets:
-        if target == ".":
-            entry = console.get_current_dir()
-        elif target == "..":
-            entry = console.get_current_dir().get_parent()
-        else:
-            entry = console.get_current_dir().get_entry(target)
-        if entry:
+        target_split = target.split("/")
+        current_dir = console.get_current_dir()
+        for tgt in target_split:
+            if tgt == "..":
+                current_dir = current_dir.get_parent()
+            elif current_dir.get_name() != tgt and tgt != ".":
+                current_dir = current_dir.get_entry(tgt)
+        if current_dir:
             if len(targets) > 1:
-                results.append(f"{target}{':' if isinstance(entry, Directory) else ''}")
-            if isinstance(entry, Directory):
-                results.append(entry.list_contents(options["show_hidden"]["value"]))
+                results.append(f"{target}{':' if isinstance(current_dir, Directory) else ''}")
+            if isinstance(current_dir, Directory):
+                results.append(current_dir.list_contents(options["show_hidden"]["value"]))
         else:
             results.append(f"ls: {target}: No such file or directory")
     return "\n".join(results)
