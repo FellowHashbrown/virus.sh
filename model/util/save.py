@@ -49,7 +49,7 @@ class Save:
         """Tells the Save object to create a new game save with the
         specified username
         """
-        self.__root, total_files = generate_filesystem()
+        self.__root, total_files = generate_filesystem(self.__username)
         self.__normal_files = total_files
         self.__virus_files = total_files // 1000
         self.save()
