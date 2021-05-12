@@ -1,4 +1,4 @@
-from random import randint, seed
+from random import randint
 from typing import List, TYPE_CHECKING
 if TYPE_CHECKING:
     from model import Directory
