@@ -1,6 +1,7 @@
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from model import Directory, NormalFile, SaveFile
+from model.error import InvalidNameError
 from model.util import *
 
 
@@ -21,6 +22,22 @@ class Console:
         self.__root = None
         self.__tracked_files = {}
 
+        self.__on_new_game = False
+        self.__on_load_game = False
+        self.__on_prompt_char = False
+
+        self.__saves: List[Union[Tuple[Save, str], Save]] = Save.load_saves()
+        for i in range(len(self.__saves)):
+            save_str = ("username: {}\n" +
+                        "\tvirus files (deleted/total): {}/{}\n" +
+                        "\tnormal files (remaining/total): {}/{}\n" +
+                        "\t{}% completed").format(
+                self.__saves[i].get_username(),
+                *self.__saves[i].get_virus_files(),
+                *self.__saves[i].get_normal_files(),
+                round((self.__saves[i].get_virus_files()[0] / self.__saves[i].get_normal_files()[1]) * 100, 2))
+            self.__saves[i] = (self.__saves[i], save_str)
+
         self.main_menu()
 
     # # # # # # # # # # # # # # # # # # # #
@@ -36,6 +53,7 @@ class Console:
         try:
             self.__save.load()
         except FileNotFoundError:
+            self.__save.generate()
             self.__save.save()
             self.__save.load()
         self.__root = self.__save.get_root()
@@ -79,12 +97,56 @@ class Console:
 
     # # # # # # # # # # # # # # # # # # # #
 
-    def parse(self, cmd: str) -> str:
+    def parse(self, cmd: str) -> Optional[str]:
         """Parses the given command"""
         cmd = cmd.split(" ")
         cmd, args = cmd[0], cmd[1:]
 
-        if cmd == "clear":
+        # Check if a "script" was run from one of the main menu folders
+        if cmd.startswith("./") and cmd.endswith(".sh") and not self.__in_play:
+            if cmd.split("/")[-1] == "new_game.sh":
+                self.__on_new_game = True
+                return "@prompt:Enter a username: "
+            elif cmd.split("/")[-1] == "load_game.sh":
+                self.__on_load_game = True
+                return f"@prompt:{ls(self, [str(self.get_current_dir().get_entry('gameSaves'))])}\nEnter the username: "
+            elif cmd.split("/")[-1] == "change_prompt_character.sh":
+                self.__on_prompt_char = True
+                return "@prompt:Enter the new prompt character: "
+
+        # Check the callback from the new game script
+        elif self.__on_new_game:
+            self.__on_new_game = False
+            for gamesave, _ in self.__saves:
+                if gamesave.get_username() == cmd:
+                    return f"{gamesave.get_username()} already exists!"
+            try:
+                self.set_save(cmd)
+                self.__in_play = True
+                return f"Created gamesave {self.get_save().get_username()} ..."
+            except InvalidNameError as e:
+                return str(e)
+
+        # Check the callback from the load game script
+        elif self.__on_load_game:
+            self.__on_load_game = False
+            for gamesave, _ in self.__saves:
+                if gamesave.get_username() == cmd:
+                    self.set_save(gamesave.get_username())
+                    self.__in_play = True
+                    return f"Loaded gamesave {gamesave.get_username()} ..."
+            return f"No gamesave found for {cmd}"
+
+        # Check the callback from the prompt character script
+        elif self.__on_prompt_char:
+            if len(cmd) != 1:
+                return "@prompt:The character must be only 1 character\nEnter the new prompt character: "
+            Options.get_instance().set_prompt_char(cmd)
+            self.__on_prompt_char = False
+            return None
+
+        # Run the commands like normal
+        elif cmd == "clear":
             return "@clear"
         elif cmd == "ls":
             return ls(self, args)
@@ -106,19 +168,6 @@ class Console:
     def main_menu(self):
         """Generates the main menu mini filesystem when starting up the game"""
 
-        # Load the game saves from the game save folder
-        saves: List[Union[Tuple[Save, str], Save]] = Save.load_saves()
-        for i in range(len(saves)):
-            save_str = ("username: {}\n" +
-                        "\tvirus files (deleted/total): {}/{}\n" +
-                        "\tnormal files (remaining/total): {}/{}\n" +
-                        "\t{}% completed").format(
-                saves[i].get_username(),
-                *saves[i].get_virus_files(),
-                *saves[i].get_normal_files(),
-                round((saves[i].get_virus_files()[0] / saves[i].get_normal_files()[1]) * 100, 2))
-            saves[i] = (saves[i], save_str)
-
         # Set the main_menu current directory
         self.__current_dir = Directory("main_menu")
 
@@ -130,7 +179,7 @@ class Console:
 
         # Add the game saves directory, pulling from the saves loaded from above
         game_saves = Directory("gameSaves", parent=self.__current_dir)
-        for save_obj in saves:
+        for save_obj in self.__saves:
             f = SaveFile(save_obj[0].get_username(), save_obj[1], game_saves)
             game_saves.add_entry(f)
 

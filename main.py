@@ -33,6 +33,7 @@ class ConsoleUI(Tk):
         """Whenever the enter/return key is pressed"""
         result = self.__console.parse(self.__current_line)
         cleared = result == "@clear"
+        prompted = False
         if result:
             if result == "@clear":
                 self.__text.delete(1.0, "end")
@@ -40,10 +41,14 @@ class ConsoleUI(Tk):
                 self.__text.insert("end", "\nbye!")
                 exit(0)
             else:
+                if result.startswith("@prompt:"):
+                    result = result[len("@prompt:"):]
+                    prompted = True
                 self.__text.insert("end", f"\n{result}")
         if not cleared:
             self.__text.insert("end", "\n")
-        self.__text.insert("end", f"{self.__console.get_prompt()}")
+        if not prompted:
+            self.__text.insert("end", f"{self.__console.get_prompt()}")
         self.__current_line = ""
         self.__text.see(END)
         return "break"
