@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from model import Entry, NormalFile, VirusFile
+from model import Entry, NormalFile, VirusFile, SaveFile
 from model.abstract import Listable
 
 
@@ -30,7 +30,7 @@ class Directory(Listable, Entry):
             total_size += entry.get_size()
         return total_size
 
-    def get_entry(self, entry: str) -> Optional[Union['Directory', NormalFile, VirusFile]]:
+    def get_entry(self, entry: str) -> Optional[Union['Directory', NormalFile, VirusFile, Entry]]:
         """Returns the Entry object given by the specified entry"""
         for e in self.get_entries():
             if e.get_name() == entry:
@@ -102,7 +102,10 @@ class Directory(Listable, Entry):
             contents.extend([".", ".."])
         for entry in self.get_entries():
             if not entry.is_hidden() or show_hidden:
-                contents.append(entry.get_name())
+                if isinstance(entry, SaveFile):
+                    contents.append(entry.get_bytes())
+                else:
+                    contents.append(entry.get_name())
         return "\n".join(contents)
 
     def to_json(self) -> dict:
