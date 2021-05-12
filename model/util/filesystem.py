@@ -11,13 +11,13 @@ valid_exts = [".py", ".sh", ".png", ".jpeg", ".jpg", ".ico", ".c", ".dat", ".db"
               ".xar", ".yaml", ".yml"]
 
 
-def generate_filesystem() -> Tuple[Directory, int]:
+def generate_filesystem(username: str) -> Tuple[Directory, int]:
     """Generates the filesystem to be used for a new game and
     returns the root of the system
     """
     root = Directory("root")
     usr = Directory("usr")
-    user_dir = Directory("user_name_here")
+    user_dir = Directory(username)
     root.add_entry(usr)
     usr.add_entry(user_dir)
 
