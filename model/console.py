@@ -28,14 +28,19 @@ class Console:
 
         self.__saves: List[Union[Tuple[Save, str], Save]] = Save.load_saves()
         for i in range(len(self.__saves)):
+            v_d, v_t = self.__saves[i].get_virus_files()   # Deleted virus files, Total virus files
+            n_d, _ = self.__saves[i].get_normal_files()  # Deleted normal files, Total normal files
+            n_r = self.__saves[i].get_restored_files()
             save_str = ("username: {}\n" +
                         "\tvirus files (deleted/total): {}/{}\n" +
-                        "\tnormal files (remaining/total): {}/{}\n" +
+                        "\tnormal files (restored/deleted): {}/{}\n" +
                         "\t{}% completed").format(
                 self.__saves[i].get_username(),
                 *self.__saves[i].get_virus_files(),
-                *self.__saves[i].get_normal_files(),
-                round((self.__saves[i].get_virus_files()[0] / self.__saves[i].get_normal_files()[1]) * 100, 2))
+                self.__saves[i].get_restored_files(), n_d,
+                round(
+                    Console.VIRUS_WEIGHT * (v_d / (v_t if v_t != 0 else 1)) * 100 +
+                    Console.NORMAL_WEIGHT * (n_r / (n_d if n_d != 0 else 1)) * 100, 2))
             self.__saves[i] = (self.__saves[i], save_str)
 
         self.main_menu()
@@ -159,7 +164,7 @@ class Console:
         elif cmd == "exit":
             if self.__in_play:
                 self.__in_play = False
-                return "@clear"
+                return "@main_menu"
             else:
                 return "@exit"
 
