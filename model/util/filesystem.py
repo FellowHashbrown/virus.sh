@@ -22,37 +22,47 @@ def generate_filesystem(username: str) -> Tuple[Directory, int]:
     returns the root of the system
     """
     root = Directory("root")
-    usr = Directory("usr")
-    user_dir = Directory(username)
+    usr = Directory("usr", parent=root)
+    user_dir = Directory(username, parent=usr)
     root.add_entry(usr)
     usr.add_entry(user_dir)
 
     file_count = 0
     for subdir in range(10):
         tmpdir, amt_files = generate_directory(user_dir)
-        root.add_entry(tmpdir)
+        user_dir.add_entry(tmpdir)
         file_count += amt_files
+    generate_virus(user_dir, n=file_count // 1000)
     return root, file_count
 
 
-def generate_virus(root_directory: Directory, n: int = 1):
+def generate_virus(root_directory: Directory, virus_id: int = -1, n: int = 1):
     """Randomly places virus files throughout the system
     starting at the directory specified
 
     :param root_directory: The directory to start placing the virus files at
+    :param virus_id: The number of the virus file to
     :param n: The amount of virus files to place
     """
     for virus in range(n):
         choose_dir = randint(1, 100) % 2 == 0
         filename = generate_filename()
         if choose_dir:  # Choose a directory to move into to place the file
+            found_dir = False
+            for entry in root_directory.get_entries():
+                if isinstance(entry, Directory):
+                    found_dir = True
+                    break
+            if not found_dir:
+                root_directory.add_entry(VirusFile(virus_id, filename, root_directory))
+                continue
             target = choice(root_directory.get_entries())
             while not isinstance(target, Directory):
-                target= choice(root_directory.get_entries())
+                target = choice(root_directory.get_entries())
             # noinspection PyTypeChecker
-            generate_virus(target)  # Recursively call this but only place 1
+            generate_virus(target, virus + 1)  # Recursively call this but only place 1
         else:  # Place the file in the current directory
-            root_directory.add_entry(VirusFile(virus + 1, filename, root_directory))
+            root_directory.add_entry(VirusFile(virus_id, filename, root_directory))
 
 
 def generate_directory(parent: Directory, depth: int = 0) -> Tuple[Directory, int]:
