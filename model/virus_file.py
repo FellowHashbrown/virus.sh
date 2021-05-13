@@ -16,12 +16,14 @@ class VirusFile(NormalFile):
     """
 
     IDENTIFYING_BYTES = [124, 56, 198, 248, 119, 64, 87, 12]
+                # in hex: 7c, 38,  c6,  f8,  77, 40, 57, 0c
 
     def __init__(self, number: int, name: str, parent: 'Directory' = None):
         super().__init__(name, parent)
         self.__number = number
         for byte in range(len(VirusFile.IDENTIFYING_BYTES)):
             self._file_bytes[byte] = VirusFile.IDENTIFYING_BYTES[byte]
+        self._file_bytes[-1] = number
 
     # # # # # # # # # # # # # # # # # # # #
 
