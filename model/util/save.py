@@ -21,7 +21,7 @@ class Save:
 
         files = []
         for entry in os.listdir(Save.SAVE_FOLDER):
-            if os.path.isfile(f"{Save.SAVE_FOLDER}/{entry}"):
+            if os.path.isfile(f"{Save.SAVE_FOLDER}/{entry}") and entry.endswith(".hex"):
                 username = entry[:entry.find(".")]
                 files.append(Save(username))
         saves = []
@@ -43,7 +43,7 @@ class Save:
         self.__username = username
         self.__root = None
         self.__virus_files = self.__deleted_virus_files = 0
-        self.__normal_files = self.__deleted_normal_files = 0
+        self.__normal_files = self.__deleted_normal_files = self.__restored = 0
 
     def generate(self):
         """Tells the Save object to create a new game save with the
@@ -69,6 +69,10 @@ class Save:
     def get_normal_files(self) -> Tuple[int, int]:
         """Returns a 2-tuple of the amount of deleted normal files and the total amount of normal files"""
         return self.__deleted_normal_files, self.__normal_files
+
+    def get_restored_files(self) -> int:
+        """Returns the amount of normal files that have been restored"""
+        return self.__restored
 
     def save(self):
         """Saves the current state of the game into a custom file"""
