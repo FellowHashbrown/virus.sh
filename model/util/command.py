@@ -3,6 +3,18 @@ from typing import List
 from model import Entry, Directory, NormalFile
 
 
+def __dir_arg_parse(console, directory_path: str) -> Entry:
+    """Parses a concatenated directory path to return the proper target"""
+    dir_split = directory_path.split("/")
+    current_dir = console.get_current_dir()
+    for target in dir_split:
+        if target == "..":
+            current_dir = current_dir.get_parent()
+        elif current_dir.get_name() != target and target != ".":
+            current_dir = current_dir.get_entry(target)
+    return current_dir
+
+
 def ls(console, args):
     """Mimics the ls command to list the contents of a Directory"""
 
@@ -26,13 +38,7 @@ def ls(console, args):
         return console.get_current_dir().list_contents(options["show_hidden"]["value"])
     results = []
     for target in targets:
-        target_split = target.split("/")
-        current_dir = console.get_current_dir()
-        for tgt in target_split:
-            if tgt == "..":
-                current_dir = current_dir.get_parent()
-            elif current_dir.get_name() != tgt and tgt != ".":
-                current_dir = current_dir.get_entry(tgt)
+        current_dir = __dir_arg_parse(console, target)
         if current_dir:
             if len(targets) > 1:
                 results.append(f"{target}{':' if isinstance(current_dir, Directory) else ''}")
@@ -80,26 +86,22 @@ def cat(console, args):
     if len(args) == 0:
         return "usage: cat <file(s)>"
 
-    current_dir = console.get_current_dir()
     result = []
     for file in args:
-        if file == "." or file == "..":
-            result.append(f"cat: {file}: Is a directory")
-        else:
-            for entry in current_dir.get_entries():
-                if entry.get_name() == file:
-                    if isinstance(entry, Directory):
-                        result.append(f"cat: {entry.get_name()}: Is a directory")
-                        break
-                    else:
-                        file_result = ""
-                        total = 0
-                        for byte in entry.get_bytes():
-                            file_result += f"{hex(byte)[2:].rjust(2, '0')} "
-                            total += 1
-                            if total % 16 == 0:
-                                file_result += "\n"
-                        result.append(file_result)
+        file = __dir_arg_parse(console, file)
+        if file:
+            if isinstance(file, Directory):
+                result.append(f"cat: {file.get_name()}: Is a directory")
+                break
+            else:
+                file_result = ""
+                total = 0
+                for byte in file.get_bytes():
+                    file_result += f"{hex(byte)[2:].rjust(2, '0')} "
+                    total += 1
+                    if total % 16 == 0:
+                        file_result += "\n"
+                result.append(file_result)
     return "\n".join(result)
 
 
