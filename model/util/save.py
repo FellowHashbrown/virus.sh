@@ -19,6 +19,10 @@ class Save:
     def load_saves() -> List['Save']:
         """Loads all the saves from the Save folder and returns them in a list"""
 
+        # Check if the save folder exists; If not, create it
+        if not os.path.exists(Save.SAVE_FOLDER):
+            os.mkdir(Save.SAVE_FOLDER)
+
         files = []
         for entry in os.listdir(Save.SAVE_FOLDER):
             if os.path.isfile(f"{Save.SAVE_FOLDER}/{entry}") and entry.endswith(".hex"):
