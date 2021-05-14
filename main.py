@@ -129,7 +129,8 @@ class ConsoleUI(Tk):
             if self.__current_index == len(self.__current_line):
                 self.__current_line = self.__current_line[:-1]
             else:
-                self.__current_line = self.__current_line[:self.__current_index] + self.__current_line[self.__current_index + 1:]
+                i = self.__current_index
+                self.__current_line = self.__current_line[:i] + self.__current_line[i + 1:]
             self.__text.delete("insert -1 chars", "insert")
         return "break"
 
