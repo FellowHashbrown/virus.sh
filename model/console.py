@@ -55,12 +55,7 @@ class Console:
         :param username: The username of the object to load from
         """
         self.__save = Save(username)
-        try:
-            self.__save.load()
-        except FileNotFoundError:
-            self.__save.generate()
-            self.__save.save()
-            self.__save.load()
+        self.__save.generate()
         self.__root = self.__save.get_root()
         self.__current_dir = self.__root.get_entry("usr").get_entry(username)
 
@@ -162,9 +157,12 @@ class Console:
             return cat(self, args)
         elif cmd == "rm":
             return rm(self, args)
+        elif cmd == "track":
+            return track(self, args)
         elif cmd == "exit":
             if self.__in_play:
                 self.__in_play = False
+                self.__save.save()
                 return "@main_menu"
             else:
                 return "@exit"

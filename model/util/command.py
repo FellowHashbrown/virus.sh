@@ -9,7 +9,8 @@ def __dir_arg_parse(console, directory_path: str) -> Entry:
     current_dir = console.get_current_dir()
     for target in dir_split:
         if target == "..":
-            current_dir = current_dir.get_parent()
+            if current_dir.get_parent():
+                current_dir = current_dir.get_parent()
         elif current_dir.get_name() != target and target != ".":
             current_dir = current_dir.get_entry(target)
     return current_dir
@@ -115,7 +116,7 @@ def rm(console, args):
     for entry in console.get_current_dir().get_entries():
         if entry.get_name() == args[-1]:
             target = entry
-    if not target:
+    if not target or console.get_root() is None:
         return f"rm: {args[-1]}: No such file or directory"
     removed = __rm_helper(target, recursive)
     console.get_current_dir().remove_entry(target)
@@ -150,4 +151,17 @@ def mntr(console, args):
 
 
 def track(console, args):
-    pass
+    if len(args) == 0:
+        return "\n".join(console.get_save().get_tracked_files())
+
+    targets = args
+    messages = []
+    for target in targets:
+        tgt = __dir_arg_parse(console, target)
+        messages.append("track: {}".format(
+            f"{tgt} tracked"
+            if tgt is not None
+            else f"{tgt}: No such file or directory"))
+        if tgt:
+            console.get_save().track_virus(str(tgt))
+    return "\n".join(messages)
