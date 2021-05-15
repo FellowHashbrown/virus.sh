@@ -25,8 +25,8 @@ class Save:
 
         files = []
         for entry in os.listdir(Save.SAVE_FOLDER):
-            if os.path.isfile(f"{Save.SAVE_FOLDER}/{entry}") and entry.endswith(".hex"):
-                username = entry[:entry.find(".")]
+            if os.path.isdir(f"{Save.SAVE_FOLDER}/{entry}"):
+                username = entry
                 files.append(Save(username))
         saves = []
         for i in range(len(files)):
@@ -48,15 +48,21 @@ class Save:
         self.__root = None
         self.__virus_files = self.__deleted_virus_files = 0
         self.__normal_files = self.__deleted_normal_files = self.__restored = 0
+        self.__tracked_files = []
 
     def generate(self):
         """Tells the Save object to create a new game save with the
-        specified username
+        specified username or to load the existing game save
         """
-        self.__root, total_files = generate_filesystem(self.__username)
-        self.__normal_files = total_files
-        self.__virus_files = total_files // 1000
-        self.save()
+        try:
+            self.load()
+            root_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.get_username()}/filesystem.hex")
+            self.__root = Directory.from_json(root_json)
+        except FileNotFoundError:
+            self.__root, total_files = generate_filesystem(self.__username)
+            self.__normal_files = total_files
+            self.__virus_files = total_files // 1000
+            self.save()
 
     def get_username(self) -> str:
         """Returns the username for the game save"""
@@ -78,36 +84,48 @@ class Save:
         """Returns the amount of normal files that have been restored"""
         return self.__restored
 
+    def track_virus(self, directory: Directory):
+        """Keeps track of a virus file by storing the parent Directory of the
+        virus file
+        """
+        if str(directory) not in self.__tracked_files:
+            self.__tracked_files.append(str(directory))
+
     def save(self):
         """Saves the current state of the game into a custom file"""
 
-        # Create the save directory if necessary
+        # Create the game saves directory if necessary
         if not os.path.exists(Save.SAVE_FOLDER):
             os.mkdir(Save.SAVE_FOLDER)
+
+        # Create this saves directory
+        if not os.path.exists(f"{Save.SAVE_FOLDER}/{self.get_username()}"):
+            os.mkdir(f"{Save.SAVE_FOLDER}/{self.get_username()}")
 
         save_json = {
             "username": self.__username,
             "virus_files": {
                 "deleted": self.__deleted_virus_files,
-                "total": self.__virus_files
+                "total": self.__virus_files,
+                "tracked": self.__tracked_files
             },
             "normal_files": {
                 "deleted": self.__deleted_normal_files,
                 "total": self.__normal_files
-            },
-            "root": self.__root.to_json()
+            }
         }
-        Hexable.save(save_json, f"{Save.SAVE_FOLDER}/{self.__username}.hex")
+        Hexable.save(save_json, f"{Save.SAVE_FOLDER}/{self.get_username()}/save.hex")
+        Hexable.save(self.__root.to_json(), f"{Save.SAVE_FOLDER}/{self.get_username()}/filesystem.hex")
 
     def load(self):
         """Loads a save file based on the username, if it exists
 
         :raises FileNotFoundError: When the save file for the username does not exist
         """
-        save_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.__username}.hex")
+        save_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.__username}/save.hex")
 
+        self.__tracked_files = save_json["virus_files"]["tracked"]
         self.__deleted_virus_files = save_json["virus_files"]["deleted"]
         self.__virus_files = save_json["virus_files"]["total"]
         self.__deleted_normal_files = save_json["normal_files"]["deleted"]
         self.__normal_files = save_json["normal_files"]["total"]
-        self.__root = Directory.from_json(save_json["root"])
