@@ -12,8 +12,36 @@ valid_exts = [".py", ".sh", ".png", ".jpeg", ".jpg", ".ico", ".c", ".dat", ".db"
 valid_virus_exts = [".py", ".sh", ".c", ".jar", ".js", ".lisp"]
 
 
-def generate_filename() -> str:
+def choose_random_directory(root_directory: Directory) -> Directory:
+    """Returns a random directory from whatever depth starting off at the the
+    specified root directory
+    """
+
+    # Choose a sub-directory
+    chosen_dir = None
+    if randint(1, 100) % 10 not in [0, 1]:  # This results in an 80% chance that a directory is chosen
+        found_dir = False
+        for entry in root_directory.get_entries():
+            if isinstance(entry, Directory):
+                found_dir = True
+                break
+        if not found_dir:
+            return root_directory
+        target = choice(root_directory.get_entries())
+        while not isinstance(target, Directory):
+            target = choice(root_directory.get_entries())
+        chosen_dir = choose_random_directory(target)
+
+    # Choose the given directory if none was found or sub-directory was not wanted
+    if chosen_dir is None:
+        chosen_dir = root_directory
+    return chosen_dir
+
+
+def generate_filename(is_virus: bool = False) -> str:
     """Returns a randomly generated filename with a random extension"""
+    if is_virus:
+        return "".join([choice(valid_chars) for _ in range(randint(5, 20))]) + choice(valid_virus_exts)
     return "".join([choice(valid_chars) for _ in range(randint(5, 20))]) + choice(valid_exts)
 
 
@@ -44,25 +72,15 @@ def generate_virus(root_directory: Directory, virus_id: int = -1, n: int = 1):
     :param virus_id: The number of the virus file to
     :param n: The amount of virus files to place
     """
+    filename = generate_filename(True)
+    if virus_id != -1:
+        print(virus_id)
+        root_directory.add_entry(VirusFile(virus_id, filename, root_directory))
+        return
+
     for virus in range(n):
-        choose_dir = randint(1, 100) % 2 == 0
-        filename = generate_filename()
-        if choose_dir:  # Choose a directory to move into to place the file
-            found_dir = False
-            for entry in root_directory.get_entries():
-                if isinstance(entry, Directory):
-                    found_dir = True
-                    break
-            if not found_dir:
-                root_directory.add_entry(VirusFile(virus_id, filename, root_directory))
-                continue
-            target = choice(root_directory.get_entries())
-            while not isinstance(target, Directory):
-                target = choice(root_directory.get_entries())
-            # noinspection PyTypeChecker
-            generate_virus(target, virus + 1)  # Recursively call this but only place 1
-        else:  # Place the file in the current directory
-            root_directory.add_entry(VirusFile(virus_id, filename, root_directory))
+        target = choose_random_directory(root_directory)
+        generate_virus(target, virus + 1)
 
 
 def generate_directory(parent: Directory, depth: int = 0) -> Tuple[Directory, int]:
