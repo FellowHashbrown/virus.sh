@@ -84,6 +84,10 @@ class Save:
         """Returns the amount of normal files that have been restored"""
         return self.__restored
 
+    def get_tracked_files(self) -> List[str]:
+        """Returns a list of tracked files including the full path"""
+        return list(self.__tracked_files)
+
     def track_virus(self, directory: Directory):
         """Keeps track of a virus file by storing the parent Directory of the
         virus file
