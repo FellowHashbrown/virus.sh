@@ -1,4 +1,4 @@
-from tkinter import Tk, Text, END, BOTH, INSERT
+from tkinter import Tk, Text, END, BOTH
 from model.console import Console
 
 
@@ -31,9 +31,7 @@ class ConsoleUI(Tk):
         self.__text.bind("<KeyPress>", self.on_key_press)
         self.__text.bind("<Tab>", self.on_tab)
 
-        self.__text.bind("<Button-1>", self.on_click)
-        self.__text.bind("<Button-2>", self.on_click)
-        self.__text.bind("<Button-3>", self.on_click)
+        self.__text.bind("<Button>", lambda _: "break")
 
         self.__current_line = ""
         self.__current_index = 0
@@ -41,10 +39,10 @@ class ConsoleUI(Tk):
         self.__prev_commands = []
         self.__prev_index = -1
 
-    def on_click(self, _):
-        return "break"
-
     def on_up_arrow(self, _):
+        """This overrides the up arrow key bind to mimic
+        loading previous commands run in the console
+        """
         if self.__prev_index < len(self.__prev_commands) - 1:
             self.__prev_index += 1
         self.__text.mark_set("insert", END)
@@ -55,9 +53,11 @@ class ConsoleUI(Tk):
         return "break"
 
     def on_down_arrow(self, _):
+        """This overrides the down arrow key bind to mimic
+        loading previous commands run in the console
+        """
         if self.__prev_index >= 0:
             self.__prev_index -= 1
-
         self.__text.delete(f"insert -{self.__current_index} chars", "insert")
         if self.__prev_index == -1:
             self.__current_line = ""
@@ -68,6 +68,9 @@ class ConsoleUI(Tk):
         return "break"
 
     def on_left_arrow(self, _):
+        """This overrides the left arrow key bind to move the insert
+        cursor left until the beginning of the current prompt
+        """
         if self.__current_index > 0:
             self.__current_index -= 1
             if self.__current_index < 0:
@@ -77,13 +80,18 @@ class ConsoleUI(Tk):
             return "break"
 
     def on_right_arrow(self, _):
+        """This overrides the right arrow key bind to move the insert
+        cursor right until the end of the text
+        """
         if self.__current_index <= len(self.__current_line):
             self.__current_index += 1
         else:
             return "break"
 
     def on_tab(self, _):
-        """Whenever the tab key is pressed, try auto-completing the text"""
+        """This overrides the tab key bind to try to
+        auto-complete any directory entries
+        """
 
         # Try splitting the current line by spaces in order to get the current
         # line and split the possible directory by using the "/" as a separator
@@ -121,7 +129,9 @@ class ConsoleUI(Tk):
         return "break"
 
     def on_key_press(self, event):
-        """Whenever a keyboard key is pressed"""
+        """This overrides the keypress event to insert text inside the current line properly
+        whether the cursor is at the beginning of the current line or the end
+        """
         if len(self.__current_line) != self.__current_index:
             line_list = list(self.__current_line)
             line_list.insert(self.__current_index, event.char)
@@ -131,7 +141,9 @@ class ConsoleUI(Tk):
         self.__current_index += 1
 
     def on_enter(self, _):
-        """Whenever the enter/return key is pressed"""
+        """This overrides the return key bind event to try calling the command
+        given and adds the command to the list of previous commands
+        """
         result = self.__console.parse(self.__current_line)
         self.__prev_commands.insert(0, self.__current_line)
         self.__prev_index = -1
@@ -162,7 +174,11 @@ class ConsoleUI(Tk):
         return "break"
 
     def on_bs(self, _):
-        """Whenever the backspace key is pressed"""
+        """This overrides the backspace key bind event to deal with backspacing the current line
+        only until the beginning of the prompt is reached.
+        If the text cursor is set in the middle of the line, only remove that part from the current line
+        that precedes the cursor.
+        """
         if self.__current_index > 0 and len(self.__current_line) > 0:
             self.__current_index -= 1
             if self.__current_index == len(self.__current_line):
