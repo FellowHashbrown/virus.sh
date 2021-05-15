@@ -137,6 +137,7 @@ class Console:
             self.__on_load_game = False
             for gamesave, _ in self.__saves:
                 if gamesave.get_username() == cmd:
+                    gamesave.generate()
                     self.set_save(gamesave.get_username())
                     self.__in_play = True
                     return f"Loaded gamesave {gamesave.get_username()} ..."
@@ -175,6 +176,7 @@ class Console:
 
         # Set the main_menu current directory
         self.__current_dir = Directory("main_menu")
+        self.__root = None
 
         # Add the play directory
         play_dir = Directory("play", parent=self.__current_dir)
@@ -185,8 +187,7 @@ class Console:
         # Add the game saves directory, pulling from the saves loaded from above
         game_saves = Directory("gameSaves", parent=self.__current_dir)
         for save_obj in self.__saves:
-            f = SaveFile(save_obj[0].get_username(), save_obj[1], game_saves)
-            game_saves.add_entry(f)
+            game_saves.add_entry(SaveFile(save_obj[0].get_username(), save_obj[1], game_saves))
 
         # Add the options directory
         options_dir = Directory("options", parent=self.__current_dir)
