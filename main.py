@@ -1,4 +1,4 @@
-from tkinter import Tk, Text, END, BOTH
+from tkinter import Tk, Text, END, BOTH, INSERT
 from model.console import Console
 
 
@@ -19,16 +19,53 @@ class ConsoleUI(Tk):
         self.__text.configure(font=("Courier New", 15), bg="black", fg="white",
                               insertbackground="white", insertwidth=4)
         self.__text.pack(expand=True, fill=BOTH)
+        self.__text.focus_set()
 
         self.__text.bind("<Left>", self.on_left_arrow)
         self.__text.bind("<Right>", self.on_right_arrow)
+        self.__text.bind("<Up>", self.on_up_arrow)
+        self.__text.bind("<Down>", self.on_down_arrow)
+
         self.__text.bind("<Return>", self.on_enter)
         self.__text.bind("<BackSpace>", self.on_bs)
         self.__text.bind("<KeyPress>", self.on_key_press)
         self.__text.bind("<Tab>", self.on_tab)
 
+        self.__text.bind("<Button-1>", self.on_click)
+        self.__text.bind("<Button-2>", self.on_click)
+        self.__text.bind("<Button-3>", self.on_click)
+
         self.__current_line = ""
         self.__current_index = 0
+
+        self.__prev_commands = []
+        self.__prev_index = -1
+
+    def on_click(self, _):
+        return "break"
+
+    def on_up_arrow(self, _):
+        if self.__prev_index < len(self.__prev_commands) - 1:
+            self.__prev_index += 1
+        self.__text.mark_set("insert", END)
+        self.__text.delete(f"insert -{len(self.__current_line)} chars", "insert")
+        self.__current_line = self.__prev_commands[self.__prev_index]
+        self.__current_index = len(self.__current_line)
+        self.__text.insert("end", self.__current_line)
+        return "break"
+
+    def on_down_arrow(self, _):
+        if self.__prev_index >= 0:
+            self.__prev_index -= 1
+
+        self.__text.delete(f"insert -{self.__current_index} chars", "insert")
+        if self.__prev_index == -1:
+            self.__current_line = ""
+        else:
+            self.__current_line = self.__prev_commands[self.__prev_index]
+        self.__current_index = len(self.__current_line)
+        self.__text.insert("end", self.__current_line)
+        return "break"
 
     def on_left_arrow(self, _):
         if self.__current_index > 0:
@@ -96,6 +133,8 @@ class ConsoleUI(Tk):
     def on_enter(self, _):
         """Whenever the enter/return key is pressed"""
         result = self.__console.parse(self.__current_line)
+        self.__prev_commands.insert(0, self.__current_line)
+        self.__prev_index = -1
         cleared = result == "@clear"
         prompted = False
         if result:
