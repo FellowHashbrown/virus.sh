@@ -1,4 +1,5 @@
 from tkinter import Tk, Text, END, BOTH
+
 from model.console import Console
 
 
@@ -38,6 +39,8 @@ class ConsoleUI(Tk):
 
         self.__prev_commands = []
         self.__prev_index = -1
+
+        self.__virus = None
 
     def on_up_arrow(self, _):
         """This overrides the up arrow key bind to mimic
@@ -158,6 +161,12 @@ class ConsoleUI(Tk):
                 cleared = True
             elif result == "@exit":
                 exit(0)
+            elif result == "@game_over":
+                self.__text.insert("end", "\nFilesystem error: Empty system: Virus has erased all files (You Lost.)")
+                self.__console.main_menu()
+            elif result == "@won":
+                self.__text.insert("end", "\nFilesystem message: Virus eradicated: You have won!")
+                self.__console.main_menu()
             else:
                 if result.startswith("@prompt:"):
                     result = result[len("@prompt:"):]
