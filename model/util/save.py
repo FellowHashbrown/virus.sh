@@ -40,6 +40,8 @@ class Save:
     INVALID_CHARS = "?&:;|[]*,\""
     SAVE_FOLDER = f"{Path.home()}/virus.shSaves"
 
+    # # # # # # # # # # # # # # # # # # # #
+
     def __init__(self, username: str):
         for invalid_char in Save.INVALID_CHARS:
             if username.find(invalid_char) != -1:
@@ -49,6 +51,9 @@ class Save:
         self.__virus_files = self.__deleted_virus_files = 0
         self.__normal_files = self.__deleted_normal_files = self.__restored = 0
         self.__tracked_files = []
+        self.__deletion_log = []
+
+    # # # # # # # # # # # # # # # # # # # #
 
     def generate(self):
         """Tells the Save object to create a new game save with the
@@ -84,6 +89,10 @@ class Save:
         """Returns the amount of normal files that have been restored"""
         return self.__restored
 
+    def get_deletion_log(self) -> List[str]:
+        """Returns the log of files, with their full paths, that are deleted by the virus"""
+        return self.__deletion_log
+
     def get_tracked_files(self) -> List[str]:
         """Returns a list of tracked files including the full path"""
         return list(self.__tracked_files)
@@ -95,6 +104,8 @@ class Save:
         if str(directory) not in self.__tracked_files:
             self.__tracked_files.append(str(directory))
 
+    # # # # # # # # # # # # # # # # # # # #
+
     def save(self):
         """Saves the current state of the game into a custom file"""
 
@@ -102,7 +113,7 @@ class Save:
         if not os.path.exists(Save.SAVE_FOLDER):
             os.mkdir(Save.SAVE_FOLDER)
 
-        # Create this saves directory
+        # Create this saves' directory
         if not os.path.exists(f"{Save.SAVE_FOLDER}/{self.get_username()}"):
             os.mkdir(f"{Save.SAVE_FOLDER}/{self.get_username()}")
 
@@ -115,7 +126,8 @@ class Save:
             },
             "normal_files": {
                 "deleted": self.__deleted_normal_files,
-                "total": self.__normal_files
+                "total": self.__normal_files,
+                "log": self.__deletion_log
             }
         }
         Hexable.save(save_json, f"{Save.SAVE_FOLDER}/{self.get_username()}/save.hex")
@@ -128,8 +140,10 @@ class Save:
         """
         save_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.__username}/save.hex")
 
-        self.__tracked_files = save_json["virus_files"]["tracked"]
         self.__deleted_virus_files = save_json["virus_files"]["deleted"]
         self.__virus_files = save_json["virus_files"]["total"]
+        self.__tracked_files = save_json["virus_files"]["tracked"]
+
         self.__deleted_normal_files = save_json["normal_files"]["deleted"]
         self.__normal_files = save_json["normal_files"]["total"]
+        self.__deletion_log = save_json["normal_files"]["log"]
