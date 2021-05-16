@@ -2,9 +2,9 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-from model import Directory
+from model import Directory, VirusFile
 from model.error import InvalidNameError
-from model.util import generate_filesystem, Hexable
+from model.util import generate_filesystem, Hexable, choose_random_directory, generate_virus
 
 
 class Save:
@@ -39,6 +39,8 @@ class Save:
 
     INVALID_CHARS = "?&:;|[]*,\""
     SAVE_FOLDER = f"{Path.home()}/virus.shSaves"
+    MINIMUM_SPEED = 3
+    SPEED_INTERVAL = 3
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -48,10 +50,12 @@ class Save:
                 raise InvalidNameError(f"{invalid_char} cannot exist in username.")
         self.__username = username
         self.__root = None
+        self.__trash = None
         self.__virus_files = self.__deleted_virus_files = 0
         self.__normal_files = self.__deleted_normal_files = self.__restored = 0
         self.__tracked_files = []
-        self.__deletion_log = []
+        self.__deletion_log: List[Tuple[int, str]] = []
+        self.__speed = 60  # Time in seconds that a file is deleted
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -61,10 +65,12 @@ class Save:
         """
         try:
             self.load()
-            root_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.get_username()}/filesystem.hex")
-            self.__root = Directory.from_json(root_json)
+            system_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.get_username()}/filesystem.hex")
+            self.__root = Directory.from_json(system_json["root"])
+            self.__trash = Directory.from_json(system_json["trash"])
         except FileNotFoundError:
             self.__root, total_files = generate_filesystem(self.__username)
+            self.__trash = Directory("Trash", parent=self.__root)
             self.__normal_files = total_files
             self.__virus_files = total_files // 1000
             self.save()
@@ -76,6 +82,14 @@ class Save:
     def get_root(self) -> Directory:
         """Returns the root of the filesystem for the game save"""
         return self.__root
+
+    def get_trash(self) -> Directory:
+        """Returns the Trash directory for the game save"""
+        return self.__trash
+
+    def get_speed(self) -> int:
+        """Returns the speed at which a file is deleted by the virus, in seconds"""
+        return self.__speed
 
     def get_virus_files(self) -> Tuple[int, int]:
         """Returns a 2-tuple of the amount of deleted virus files and the total amount of virus files"""
@@ -89,9 +103,18 @@ class Save:
         """Returns the amount of normal files that have been restored"""
         return self.__restored
 
-    def get_deletion_log(self) -> List[str]:
+    def get_deletion_log(self) -> List[Tuple[int, str]]:
         """Returns the log of files, with their full paths, that are deleted by the virus"""
-        return self.__deletion_log
+        return list(self.__deletion_log)
+
+    def log_deletion(self, virus_id: int, file: str):
+        """Logs a deletion of a file by the virus
+
+        :param virus_id: The file number of the Virus that deleted the file
+        :param file: The total pathname of the file that was deleted
+        """
+        self.__deleted_normal_files += 1
+        self.__deletion_log.append((virus_id, file))
 
     def get_tracked_files(self) -> List[str]:
         """Returns a list of tracked files including the full path"""
@@ -103,6 +126,24 @@ class Save:
         """
         if str(directory) not in self.__tracked_files:
             self.__tracked_files.append(str(directory))
+
+    # # # # # # # # # # # # # # # # # # # #
+
+    def increase_speed(self, virus_file: VirusFile):
+        """Increases the speed of the deletion by the virus and moves
+        the specified virus file to a new, random location
+        In addition, a new virus file is generated somewhere on the system
+        """
+        if self.__speed > Save.MINIMUM_SPEED:
+            self.__speed -= Save.SPEED_INTERVAL
+
+        new_dir = choose_random_directory(self.__root)
+        old_dir = virus_file.get_parent()
+        old_dir.remove_entry(virus_file)
+        virus_file.set_parent(new_dir)
+        new_dir.add_entry(virus_file)
+
+        generate_virus(self.__root, self.__virus_files + 1)
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -119,6 +160,7 @@ class Save:
 
         save_json = {
             "username": self.__username,
+            "speed": self.__speed,
             "virus_files": {
                 "deleted": self.__deleted_virus_files,
                 "total": self.__virus_files,
@@ -130,8 +172,12 @@ class Save:
                 "log": self.__deletion_log
             }
         }
+        system_json = {
+            "root": self.__root.to_json(),
+            "trash": self.__trash.to_json()
+        }
         Hexable.save(save_json, f"{Save.SAVE_FOLDER}/{self.get_username()}/save.hex")
-        Hexable.save(self.__root.to_json(), f"{Save.SAVE_FOLDER}/{self.get_username()}/filesystem.hex")
+        Hexable.save(system_json, f"{Save.SAVE_FOLDER}/{self.get_username()}/filesystem.hex")
 
     def load(self):
         """Loads a save file based on the username, if it exists
@@ -139,6 +185,8 @@ class Save:
         :raises FileNotFoundError: When the save file for the username does not exist
         """
         save_json = Hexable.load(f"{Save.SAVE_FOLDER}/{self.__username}/save.hex")
+
+        self.__speed = save_json.get("speed", 60)
 
         self.__deleted_virus_files = save_json["virus_files"]["deleted"]
         self.__virus_files = save_json["virus_files"]["total"]
