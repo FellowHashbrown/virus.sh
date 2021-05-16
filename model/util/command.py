@@ -65,14 +65,14 @@ def cd(console, args):
         if tgt == ".":
             continue
         elif tgt == "..":
-            if current_dir == console.get_trash() and console.get_current_menu() == "play":
+            if current_dir == console.get_save().get_trash() and console.is_in_play():
                 console.set_current_dir(console.get_previous_dir())
             elif current_dir.get_parent():
                 console.set_current_dir(current_dir.get_parent())
             continue
         elif tgt == "Trash":
             console.set_previous_dir(console.get_current_dir())
-            console.set_current_dir(console.get_trash())
+            console.set_current_dir(console.get_save().get_trash())
             return
         found = False
         for entry in current_dir.get_entries():

@@ -79,6 +79,10 @@ class Console:
         prompt_char = Options.get_instance().get_prompt_char()
         return f"{prompt} {prompt_char} "
 
+    def is_in_play(self) -> bool:
+        """Returns whether or not a game is currently being played"""
+        return self.__in_play
+
     # # # # # # # # # # # # # # # # # # # #
 
     def parse(self, cmd: str) -> Optional[str]:
