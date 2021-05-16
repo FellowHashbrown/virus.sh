@@ -1,5 +1,5 @@
 from random import choice, randint
-from typing import Tuple
+from typing import Optional, Tuple
 
 from model import Directory, NormalFile, VirusFile
 
@@ -13,7 +13,7 @@ valid_virus_exts = [".py", ".sh", ".c", ".jar", ".js", ".lisp"]
 
 
 def choose_random_directory(root_directory: Directory) -> Directory:
-    """Returns a random directory from whatever depth starting off at the the
+    """Returns a random directory from whatever depth starting off at the
     specified root directory
     """
 
@@ -36,6 +36,28 @@ def choose_random_directory(root_directory: Directory) -> Directory:
     if chosen_dir is None:
         chosen_dir = root_directory
     return chosen_dir
+
+
+def choose_random_file(root_directory: Directory) -> NormalFile:
+    """Returns a random file from whatever depth starting off at the
+    specified root directory
+    """
+
+    # Choose a sub-directory
+    chosen_dir = choose_random_directory(root_directory)
+    while True:
+        found_file = False
+        for entry in chosen_dir.get_entries():
+            if not isinstance(entry, VirusFile) and not isinstance(entry, Directory):
+                found_file = True
+                break
+        if found_file:
+            break
+        chosen_dir = choose_random_directory(chosen_dir)
+    target = choice(chosen_dir.get_entries())
+    while not isinstance(target, NormalFile) or isinstance(target, VirusFile):
+        target = choice(chosen_dir.get_entries())
+    return target
 
 
 def generate_filename(is_virus: bool = False) -> str:
