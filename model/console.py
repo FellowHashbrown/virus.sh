@@ -15,33 +15,17 @@ class Console:
 
     def __init__(self):
         self.__save = None
-        self.__trash = Directory("Trash")
         self.__in_play = False
         self.__current_dir = None
         self.__previous_dir = None
-        self.__root = None
         self.__tracked_files = {}
 
         self.__on_new_game = False
         self.__on_load_game = False
         self.__on_prompt_char = False
 
-        self.__saves: List[Union[Tuple[Save, str], Save]] = Save.load_saves()
-        for i in range(len(self.__saves)):
-            v_d, v_t = self.__saves[i].get_virus_files()   # Deleted virus files, Total virus files
-            n_d, _ = self.__saves[i].get_normal_files()  # Deleted normal files, Total normal files
-            n_r = self.__saves[i].get_restored_files()
-            save_str = ("username: {}\n" +
-                        "\tvirus files (deleted/total): {}/{}\n" +
-                        "\tnormal files (restored/deleted): {}/{}\n" +
-                        "\t{}% completed").format(
-                self.__saves[i].get_username(),
-                *self.__saves[i].get_virus_files(),
-                self.__saves[i].get_restored_files(), n_d,
-                round(
-                    Console.VIRUS_WEIGHT * (v_d / (v_t if v_t != 0 else 1)) * 100 +
-                    Console.NORMAL_WEIGHT * (n_r / (n_d if n_d != 0 else 1)) * 100, 2))
-            self.__saves[i] = (self.__saves[i], save_str)
+        self.__virus = None
+        self.__saves = []
 
         self.main_menu()
 
@@ -56,8 +40,8 @@ class Console:
         """
         self.__save = Save(username)
         self.__save.generate()
-        self.__root = self.__save.get_root()
-        self.__current_dir = self.__root.get_entry("usr").get_entry(username)
+        self.__current_dir = self.__save.get_root().get_entry("usr").get_entry(username)
+        self.__virus = Virus(self.__save, self.game_over)
 
     def set_current_dir(self, directory: Directory):
         """Sets the current directory for the console"""
@@ -75,7 +59,7 @@ class Console:
 
     def get_trash(self) -> Directory:
         """Returns the Trash directory"""
-        return self.__trash
+        return self.__save.get_trash()
 
     def get_current_dir(self) -> Directory:
         """Returns the current directory"""
@@ -87,7 +71,7 @@ class Console:
 
     def get_root(self) -> Directory:
         """Returns the very root of the filesystem"""
-        return self.__root
+        return self.__save.get_root()
 
     def get_prompt(self) -> str:
         """Returns the command line prompt in the console"""
@@ -153,28 +137,56 @@ class Console:
             return ls(self, args)
         elif cmd == "cd":
             return cd(self, args)
-        elif cmd == "cat":
+        elif cmd == "cat" and self.__in_play:
             return cat(self, args)
-        elif cmd == "rm":
+        elif cmd == "rm" and self.__in_play:
             return rm(self, args)
-        elif cmd == "track":
+        elif cmd == "track" and self.__in_play:
             return track(self, args)
+        elif cmd == "mntr" and self.__in_play:
+            return mntr(self, args)
         elif cmd == "exit":
             if self.__in_play:
                 self.__in_play = False
                 self.__save.save()
                 return "@main_menu"
-            else:
-                return "@exit"
+            return "@exit"
 
     # # # # # # # # # # # # # # # # # # # #
+
+    def game_over(self):
+        """The function called when the player has lost the game
+        and all the files on the system are deleted
+        """
+        self.__in_play = False
+        return "@game_over"
 
     def main_menu(self):
         """Generates the main menu mini filesystem when starting up the game"""
 
         # Set the main_menu current directory
         self.__current_dir = Directory("main_menu")
-        self.__root = None
+        if self.__virus:
+            self.__virus.stop()
+            self.__virus = None
+
+        # Load the list of saves from the save directory
+        self.__saves: List[Union[Tuple[Save, str], Save]] = Save.load_saves()
+        for i in range(len(self.__saves)):
+            v_d, v_t = self.__saves[i].get_virus_files()  # Deleted virus files, Total virus files
+            n_d, _ = self.__saves[i].get_normal_files()  # Deleted normal files, Total normal files
+            n_r = self.__saves[i].get_restored_files()
+            save_str = ("username: {}\n" +
+                        "\tvirus files (deleted/total): {}/{}\n" +
+                        "\tnormal files (restored/deleted): {}/{}\n" +
+                        "\t{}% completed").format(
+                self.__saves[i].get_username(),
+                *self.__saves[i].get_virus_files(),
+                self.__saves[i].get_restored_files(), n_d,
+                round(
+                    Console.VIRUS_WEIGHT * (v_d / (v_t if v_t != 0 else 1)) * 100 +
+                    Console.NORMAL_WEIGHT * (n_r / (n_d if n_d != 0 else 1)) * 100, 2))
+            self.__saves[i] = (self.__saves[i], save_str)
 
         # Add the play directory
         play_dir = Directory("play", parent=self.__current_dir)
