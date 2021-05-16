@@ -1,6 +1,6 @@
 from typing import List
 
-from model import Entry, Directory, NormalFile
+from model import Entry, Directory, NormalFile, VirusFile
 
 
 def __dir_arg_parse(console, directory_path: str) -> Entry:
@@ -118,11 +118,18 @@ def rm(console, args):
             target = entry
     if not target or console.get_root() is None:
         return f"rm: {args[-1]}: No such file or directory"
-    removed = __rm_helper(target, recursive)
-    console.get_current_dir().remove_entry(target)
-    for entry in removed:
-        entry.set_parent(console.get_trash())
-    console.get_trash().add_entries(removed)
+
+    # The wrong virus file was deleted
+    if isinstance(target, VirusFile):
+        if target.get_number() != console.get_save().get_virus_files()[0]:
+            console.get_save().increase_speed(target)
+
+    else:
+        removed = __rm_helper(target, recursive)
+        console.get_current_dir().remove_entry(target)
+        for entry in removed:
+            entry.set_parent(console.get_trash())
+        console.get_trash().add_entries(removed)
 
 
 def __rm_helper(directory: Directory, recursive: bool = True) -> List[Entry]:
@@ -147,7 +154,16 @@ def chunks(console, args):
 
 
 def mntr(console, args):
-    pass
+    if len(args) != 0:
+        return "usage: mntr"
+
+    save = console.get_save()
+    log = save.get_deletion_log()
+    speed = save.get_speed()
+    result = "last log entry: {}\nspeed: {}s"
+    if len(log) != 0:
+        return result.format(log[-1], speed)
+    return result.format("None Found", speed)
 
 
 def track(console, args):
