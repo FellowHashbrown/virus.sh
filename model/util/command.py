@@ -3,8 +3,10 @@ from typing import List
 from model import Entry, Directory, NormalFile, VirusFile
 
 
-def __dir_arg_parse(directory, directory_path: str) -> Entry:
-    """Parses a concatenated directory path to return the proper target"""
+def __dir_arg_parse(directory: Directory, directory_path: str) -> Entry:
+    """Parses a concatenated directory path to return the proper target
+    which may be a file or directory
+    """
     dir_split = directory_path.split("/")
     for target in dir_split:
         if target == "..":
@@ -16,7 +18,10 @@ def __dir_arg_parse(directory, directory_path: str) -> Entry:
 
 
 def ls(console, args):
-    """Mimics the ls command to list the contents of a Directory"""
+    """Mimics the ls command to list the contents of a Directory
+    which will distinguish the directories from files
+    by placing the Directories first and Files second
+    """
 
     # Keep track of the options for the ls command
     options = {
@@ -151,6 +156,27 @@ def __rm_helper(directory: Directory, recursive: bool = True) -> List[Entry]:
     return removed
 
 
+def restore(console, args):
+    if len(args) == 0:
+        return "usage: restore <file>"
+
+    if console.get_current_dir() != console.get_trash():
+        return "restore: must be in Trash directory"
+
+    result = []
+    for entry in args:
+        file = __dir_arg_parse(console.get_trash(), entry)
+        if file:
+            if isinstance(file, NormalFile):
+                file = file.restore(console.get_root())
+                result.append(f"{file.get_name()} restored to {str(file)}")
+            else:
+                result.append(f"restore: {file.get_name()}: is not a valid file")
+        else:
+            result.append(f"restore: {entry}: No such file")
+    return "\n".join(result)
+
+
 def trace(console, args):
     if len(args) == 0:
         return "usage: trace <file(s)>"
@@ -167,12 +193,8 @@ def trace(console, args):
                 else:
                     for log in console.get_save().get_deletion_log():
                         if file.get_name() == log[1].split("/")[-1]:
-                            result.append(f"{log[0]}: {log[2]}")
+                            result.append(log[2])
         return "\n".join(result)
-
-
-def chunks(console, args):
-    pass
 
 
 def mntr(console, args):
@@ -182,24 +204,41 @@ def mntr(console, args):
     save = console.get_save()
     log = save.get_deletion_log()
     speed = save.get_speed()
-    result = "last log entry: {}\nspeed: {}s"
-    if len(log) != 0:
-        return result.format(log[-1][1], speed)
-    return result.format("None Found", speed)
+    result = "last log entry: {}\nspeed: {}s\nvirus files deleted: {}\nfiles deleted by virus: {}"
+    return result.format(
+        log[-1][1]
+        if len(log) != 0
+        else "None found", speed,
+        save.get_virus_files()[0], save.get_normal_files()[0])
 
 
 def track(console, args):
     if len(args) == 0:
-        return "\n".join(console.get_save().get_tracked_files())
+        tracked_files = console.get_save().get_tracked_files()
+        return "\n".join([
+            f"{i + 1}: {tracked_files[i]}"
+            for i in range(len(tracked_files))
+            if tracked_files[i] is not None
+        ])
+    elif len(args) % 2 != 0:
+        return "usage: track [<number> <file> ...]"
 
-    targets = args
+    target_numbers = []
+    targets = []
+    for i in range(0, len(args), 2):
+        if not args[i].isdigit():
+            return f"track: {args[i]}: not a number"
+        target_numbers.append(int(args[i]))
+        targets.append(args[i + 1])
     messages = []
-    for target in targets:
+    for i in range(len(targets)):
+        target = targets[i]
+        target_number = target_numbers[i]
         tgt = __dir_arg_parse(console.get_current_dir(), target)
         messages.append("track: {}".format(
             f"{tgt} tracked"
             if tgt is not None
             else f"{tgt}: No such file or directory"))
         if tgt:
-            console.get_save().track_virus(str(tgt))
+            console.get_save().track_virus(target_number, tgt)
     return "\n".join(messages)

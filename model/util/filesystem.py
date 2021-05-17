@@ -1,5 +1,5 @@
 from random import choice, randint
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 from model import Directory, NormalFile, VirusFile
 

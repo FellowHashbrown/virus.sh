@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-from model import Directory, VirusFile
+from model import Directory, VirusFile, NormalFile
 from model.error import InvalidNameError
 from model.util import generate_filesystem, Hexable, choose_random_directory, generate_virus
 
@@ -121,12 +121,14 @@ class Save:
         """Returns a list of tracked files including the full path"""
         return list(self.__tracked_files)
 
-    def track_virus(self, file: VirusFile):
+    def track_virus(self, virus_id: int, file: VirusFile):
         """Keeps track of a virus file by storing the parent Directory of the
         virus file
         """
-        if str(file) not in self.__tracked_files:
-            self.__tracked_files.append(str(file))
+        while len(self.__tracked_files) < self.__virus_files:
+            self.__tracked_files.append(None)
+        if isinstance(file, VirusFile) and 0 <= virus_id < len(self.__tracked_files):
+            self.__tracked_files[virus_id - 1] = str(file)
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -157,7 +159,12 @@ class Save:
         self.__deleted_virus_files += 1
         old_dir = virus_file.get_parent()
         old_dir.remove_entry(old_dir)
-        del virus_file
+
+    def restored_file(self):
+        """Restores the specified file to its original parent and returns
+        the updated file object.
+        """
+        self.__restored += 1
 
     # # # # # # # # # # # # # # # # # # # #
 

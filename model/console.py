@@ -151,6 +151,8 @@ class Console:
             return mntr(self, args)
         elif cmd == "trace" and self.__in_play:
             return trace(self, args)
+        elif cmd == "restore" and self.__in_play:
+            return restore(self, args)
         elif cmd == "exit":
             if self.__in_play:
                 self.__in_play = False
