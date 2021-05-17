@@ -21,7 +21,7 @@ The virus is split up into however many files you have divided by 1000:
 Your goal is to delete all the virus files in sequential order before the virus
 deletes all the files on the system.
 
-To start off, each file of the virus takes a turn deleting a random file, every 60 seconds, on the system
+To start off, each file of the virus takes a turn deleting a random file, every 30 seconds, on the system
 but not in any particular order. For example, here's how it could happen:
 * Virus file 5 deletes a file
 * Virus file 20 deletes a file
@@ -34,8 +34,8 @@ If you delete a virus file that wasn't supposed to be deleted yet, (let's say yo
 virus file 4 last, and then you delete virus file 6, but not 5), then that virus file will be 
 randomly relocated somewhere else on the system, and a new virus file will be added for you to delete.
 
-In addition, every time you make this mistake, the virus deletes files quicker by 3 seconds.
-Don't worry though, the quickest time the virus ends up deleting a file is 3 seconds.
+In addition, every time you make this mistake, the virus deletes files quicker by 2 seconds.
+Don't worry though, the quickest time the virus ends up deleting a file is 2 seconds.
 Once you reach that, you have very limited time as this time will never increase again.
 
 ### After the Virus is gone
@@ -63,6 +63,6 @@ which will all be described below:
 ## Feedback and Suggestions
 Any feedback and suggestions can be reported directly to their proper issues on this GitHub.
 
-Here are links to make it easier: **(Links coming soon)**
-* Report Bug
-* Make a Suggestion
+Here are links to make it easier:
+* [Report Bug](https://github.com/FellowHashbrown/virus.sh/issues/new?assignees=FellowHashbrown&labels=bug&template=bug_report.md&title=%5BBUG%5D+)
+* [Make a Suggestion](https://github.com/FellowHashbrown/virus.sh/issues/new?assignees=FellowHashbrown&labels=enhancement&template=suggestion.md&title=%5BSUGGESTION%5D+)
