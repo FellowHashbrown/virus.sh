@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple, Union
 
 from model import Directory, NormalFile, SaveFile
 from model.error import InvalidNameError
+from model.theme import Theme, Element
 from model.util import *
 
 
@@ -24,8 +25,20 @@ class Console:
         self.__on_load_game = False
         self.__on_prompt_char = False
 
+        self.__on_new_theme = False
+        self.__on_edit_theme = False
+        self.__on_delete_theme = False
+
         self.__virus = None
         self.__saves = []
+        self.__themes = {
+            "obsidian": Theme("obsidian",
+                              game = Element("black", "#EC7600"),
+                              menu = Element("black", "#678CB1"),
+                              curdir = Element("black", "#A0A2A4"),
+                              directory = Element("black", "#A082BD"),
+                              file = Element("black", "#FFCD22"))
+        }
 
         self.main_menu()
 
@@ -79,6 +92,13 @@ class Console:
         prompt_char = Options.get_instance().get_prompt_char()
         return f"{prompt} {prompt_char} "
 
+    def get_prompt_indices(self) -> Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]:
+        """Returns a 3-tuple of 2-tuples for the prompt indices meant for the theme options"""
+        game_indices = (0, 8)
+        menu_indices = (9, 13)
+        curdir_indices = (14, 14 + len(self.__current_dir.get_name()))
+        return game_indices, menu_indices, curdir_indices
+
     def is_in_play(self) -> bool:
         """Returns whether or not a game is currently being played"""
         return self.__in_play
@@ -101,6 +121,15 @@ class Console:
             elif cmd.split("/")[-1] == "change_prompt_character.sh":
                 self.__on_prompt_char = True
                 return "@prompt:Enter the new prompt character: "
+            elif cmd.split("/")[-1] == "new_theme.sh":
+                self.__on_new_theme = True
+                return "@prompt:Enter the name of the theme: "
+            elif cmd.split("/")[-1] == "edit_theme.sh":
+                self.__on_edit_theme = True
+                return "@prompt:Enter the name of the theme: "
+            elif cmd.split("/")[-1] == "delete_theme.sh":
+                self.__on_delete_theme = True
+                return "@prompt:Enter the name of the theme: "
 
         # Check the callback from the new game script
         elif self.__on_new_game:
@@ -133,6 +162,18 @@ class Console:
             Options.get_instance().set_prompt_char(cmd)
             self.__on_prompt_char = False
             return None
+
+        # Check the callback from the new theme script
+        elif self.__on_new_theme:
+            pass
+
+        # Check the callback from the edit theme script
+        elif self.__on_edit_theme:
+            pass
+
+        # Check the callback from the delete theme script
+        elif self.__on_delete_theme:
+            pass
 
         # Run the commands like normal
         elif cmd == "clear":
@@ -168,6 +209,10 @@ class Console:
         """
         self.__in_play = False
         return "@game_over"
+
+    def get_themes(self) -> dict:
+        """Loads the themes from the theme file into the console"""
+        return self.__themes
 
     def main_menu(self):
         """Generates the main menu mini filesystem when starting up the game"""
@@ -213,3 +258,6 @@ class Console:
         options_dir.add_entries(options_char)
 
         self.__current_dir.add_entries(play_dir, game_saves, options_dir)
+
+    def theme_config(self):
+        pass

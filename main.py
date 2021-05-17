@@ -16,9 +16,9 @@ class ConsoleUI(Tk):
         self.__console = Console()
 
         self.__text = Text(self)
-        self.__text.insert("end", f"{self.__console.get_prompt()}")
         self.__text.configure(font=("Courier New", 15), bg="black", fg="white",
                               insertbackground="white", insertwidth=4)
+        self.insert_prompt()
         self.__text.pack(expand=True, fill=BOTH)
         self.__text.focus_set()
 
@@ -41,6 +41,19 @@ class ConsoleUI(Tk):
         self.__prev_index = -1
 
         self.__virus = None
+
+        for theme_name in self.__console.get_themes():
+            theme = self.__console.get_themes()[theme_name]
+            self.__text.tag_configure(f"{theme_name}_game", background=theme["game"]["bg"],
+                                      foreground=theme["game"]["fg"])
+            self.__text.tag_configure(f"{theme_name}_menu", background=theme["menu"]["bg"],
+                                      foreground=theme["menu"]["fg"])
+            self.__text.tag_configure(f"{theme_name}_curdir", background=theme["curdir"]["bg"],
+                                      foreground=theme["curdir"]["fg"])
+            self.__text.tag_configure(f"{theme_name}_directory", background=theme["directory"]["bg"],
+                                      foreground=theme["directory"]["fg"])
+            self.__text.tag_configure(f"{theme_name}_file", background=theme["file"]["bg"],
+                                      foreground=theme["file"]["fg"])
 
     def on_up_arrow(self, _):
         """This overrides the up arrow key bind to mimic
@@ -175,13 +188,16 @@ class ConsoleUI(Tk):
                 if result.startswith("@prompt:"):
                     result = result[len("@prompt:"):]
                     prompted = True
-                self.__text.insert("end", f"\n{result}")
+                if self.__current_line[:2] == "ls":
+                    self.insert_ls(result)
+                else:
+                    self.__text.insert("end", f"\n{result}")
+        self.__current_line = ""
+        self.__current_index = 0
         if not cleared:
             self.__text.insert("end", "\n")
         if not prompted:
-            self.__text.insert("end", f"{self.__console.get_prompt()}")
-        self.__current_line = ""
-        self.__current_index = 0
+            self.insert_prompt()
         self.__text.see(END)
         self.__text.mark_set("insert", END)
         return "break"
@@ -201,6 +217,40 @@ class ConsoleUI(Tk):
                 self.__current_line = self.__current_line[:i] + self.__current_line[i + 1:]
             self.__text.delete("insert -1 chars", "insert")
         return "break"
+
+    def insert_prompt(self):
+        """Inserts the prompt into the text field"""
+        game_indices, menu_indices, curdir_indices = self.__console.get_prompt_indices()
+        self.__text.mark_set("insert", END)
+        cur_line = self.__text.index("insert").split(".")[0]
+        self.__text.insert("end", f"{self.__console.get_prompt()}")
+        self.__text.tag_add("obsidian_game", f"{cur_line}.{game_indices[0]}", f"{cur_line}.{game_indices[1]}")
+        self.__text.tag_add("obsidian_menu", f"{cur_line}.{menu_indices[0]}", f"{cur_line}.{menu_indices[1]}")
+        self.__text.tag_add("obsidian_curdir", f"{cur_line}.{curdir_indices[0]}", f"{cur_line}.{curdir_indices[1]}")
+
+    def insert_ls(self, result: str):
+        """Inserts the result of ls and colorizes it"""
+
+        # Get the indices for each of the results
+        dir_indices = []
+        file_indices = []
+        result_list = result.split("\n")
+        for r in result_list:
+            if r.find(".") == -1:
+                dir_indices.append((0, len(r)))
+            else:
+                file_indices.append((0, len(r)))
+        indices = dir_indices + file_indices
+
+        # Insert the indices and colorize it
+        self.__text.mark_set("insert", END)
+        self.__text.insert("end", f"\n{result}")
+        cur_line = int(self.__text.index("insert").split(".")[0])
+        for i in range(len(result_list)):
+            is_dir = i < len(dir_indices)
+            self.__text.tag_add("obsidian_directory" if is_dir else "obsidian_file",
+                                f"{cur_line - len(result_list) + i + 1}.{indices[i][0]}",
+                                f"{cur_line - len(result_list) + i + 1}.{indices[i][1]}")
 
 
 if __name__ == "__main__":
