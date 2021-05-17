@@ -30,7 +30,8 @@ class Virus(Thread):
         parent_dir = target_file.get_parent()
         parent_dir.remove_entry(target_file)
         target_file.set_parent(self.__save.get_trash())
-        virus_id = randint(1, self.__save.get_virus_files()[1])
+        self.__save.get_trash().add_entry(target_file)
+        virus_id = randint(self.__save.get_virus_files()[0] + 1, self.__save.get_virus_files()[1])
         self.__save.log_deletion(virus_id, file_log)
 
     def stop(self):
