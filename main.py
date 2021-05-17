@@ -106,10 +106,14 @@ class ConsoleUI(Tk):
             dir_line_split = line_split[-1].split("/")
 
         # Iterate through the entries in the most recent directory to try to auto complete it
-        if len(dir_line_split) == 1:
-            current_dir = self.__console.get_current_dir()
-        else:
-            current_dir = self.__console.get_current_dir().get_entry(dir_line_split[-2])
+        current_dir = self.__console.get_current_dir()
+        if len(dir_line_split) > 1:
+            for entry in dir_line_split[:-1]:
+                if entry == "..":
+                    if current_dir.get_parent():
+                        current_dir = current_dir.get_parent()
+                elif entry != ".":
+                    current_dir = current_dir.get_entry(entry)
 
         # If the directory exists, try finding the entry that matches the last result
         if current_dir and dir_line_split[-1]:
