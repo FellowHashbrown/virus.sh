@@ -54,8 +54,9 @@ class Save:
         self.__virus_files = self.__deleted_virus_files = 0
         self.__normal_files = self.__deleted_normal_files = self.__restored = 0
         self.__tracked_files = []
-        self.__deletion_log: List[Tuple[int, str]] = []
+        self.__deletion_log: List[Tuple[int, str, str]] = []
         self.__speed = 60  # Time in seconds that a file is deleted
+        self.__virus_file_locations = {}
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -69,8 +70,8 @@ class Save:
             self.__root = Directory.from_json(system_json["root"])
             self.__trash = Directory.from_json(system_json["trash"])
         except FileNotFoundError:
-            self.__root, total_files = generate_filesystem(self.__username)
-            self.__trash = Directory("Trash", parent=self.__root)
+            self.__root, total_files, self.__virus_file_locations = generate_filesystem(self.__username)
+            self.__trash = Directory("Trash")
             self.__normal_files = total_files
             self.__virus_files = total_files // 1000
             self.save()
@@ -103,7 +104,7 @@ class Save:
         """Returns the amount of normal files that have been restored"""
         return self.__restored
 
-    def get_deletion_log(self) -> List[Tuple[int, str]]:
+    def get_deletion_log(self) -> List[Tuple[int, str, str]]:
         """Returns the log of files, with their full paths, that are deleted by the virus"""
         return list(self.__deletion_log)
 
@@ -114,18 +115,18 @@ class Save:
         :param file: The total pathname of the file that was deleted
         """
         self.__deleted_normal_files += 1
-        self.__deletion_log.append((virus_id, file))
+        self.__deletion_log.append((virus_id, file, self.__virus_file_locations[str(virus_id)]))
 
     def get_tracked_files(self) -> List[str]:
         """Returns a list of tracked files including the full path"""
         return list(self.__tracked_files)
 
-    def track_virus(self, directory: Directory):
+    def track_virus(self, file: VirusFile):
         """Keeps track of a virus file by storing the parent Directory of the
         virus file
         """
-        if str(directory) not in self.__tracked_files:
-            self.__tracked_files.append(str(directory))
+        if str(file) not in self.__tracked_files:
+            self.__tracked_files.append(str(file))
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -136,14 +137,27 @@ class Save:
         """
         if self.__speed > Save.MINIMUM_SPEED:
             self.__speed -= Save.SPEED_INTERVAL
+        if str(virus_file) in self.__tracked_files:
+            self.__tracked_files.remove(str(virus_file))
 
+        self.__virus_files += 1
         new_dir = choose_random_directory(self.__root)
         old_dir = virus_file.get_parent()
         old_dir.remove_entry(virus_file)
         virus_file.set_parent(new_dir)
         new_dir.add_entry(virus_file)
 
-        generate_virus(self.__root, self.__virus_files + 1)
+        virus_file_2nd_parent = generate_virus(self.__root, self.__virus_files)
+        self.__virus_file_locations[str(self.__virus_files)] = virus_file_2nd_parent
+
+    def remove_virus(self, virus_file: VirusFile):
+        """Removes the given virus file from the list of possible
+        viruses to be used to delete any files on the system
+        """
+        self.__deleted_virus_files += 1
+        old_dir = virus_file.get_parent()
+        old_dir.remove_entry(old_dir)
+        del virus_file
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -164,7 +178,8 @@ class Save:
             "virus_files": {
                 "deleted": self.__deleted_virus_files,
                 "total": self.__virus_files,
-                "tracked": self.__tracked_files
+                "tracked": self.__tracked_files,
+                "locations": self.__virus_file_locations
             },
             "normal_files": {
                 "deleted": self.__deleted_normal_files,
@@ -191,6 +206,7 @@ class Save:
         self.__deleted_virus_files = save_json["virus_files"]["deleted"]
         self.__virus_files = save_json["virus_files"]["total"]
         self.__tracked_files = save_json["virus_files"]["tracked"]
+        self.__virus_file_locations = save_json["virus_files"]["locations"]
 
         self.__deleted_normal_files = save_json["normal_files"]["deleted"]
         self.__normal_files = save_json["normal_files"]["total"]

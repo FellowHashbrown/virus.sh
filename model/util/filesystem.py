@@ -1,5 +1,5 @@
 from random import choice, randint
-from typing import Optional, Tuple
+from typing import List, Tuple, Union
 
 from model import Directory, NormalFile, VirusFile
 
@@ -19,7 +19,7 @@ def choose_random_directory(root_directory: Directory) -> Directory:
 
     # Choose a sub-directory
     chosen_dir = None
-    if randint(1, 100) % 10 not in [0, 1]:  # This results in an 80% chance that a directory is chosen
+    if randint(1, 100) % 10 != 0:  # This results in an 90% chance that a directory is chosen
         found_dir = False
         for entry in root_directory.get_entries():
             if isinstance(entry, Directory):
@@ -67,7 +67,7 @@ def generate_filename(is_virus: bool = False) -> str:
     return "".join([choice(valid_chars) for _ in range(randint(5, 20))]) + choice(valid_exts)
 
 
-def generate_filesystem(username: str) -> Tuple[Directory, int]:
+def generate_filesystem(username: str) -> Tuple[Directory, int, dict]:
     """Generates the filesystem to be used for a new game and
     returns the root of the system
     """
@@ -82,11 +82,11 @@ def generate_filesystem(username: str) -> Tuple[Directory, int]:
         tmpdir, amt_files = generate_directory(user_dir)
         user_dir.add_entry(tmpdir)
         file_count += amt_files
-    generate_virus(user_dir, n=file_count // 1000)
-    return root, file_count
+    virus_files = generate_virus(user_dir, n=file_count // 1000)
+    return root, file_count, virus_files
 
 
-def generate_virus(root_directory: Directory, virus_id: int = -1, n: int = 1):
+def generate_virus(root_directory: Directory, virus_id: int = -1, n: int = 1) -> Union[str, dict]:
     """Randomly places virus files throughout the system
     starting at the directory specified
 
@@ -96,13 +96,16 @@ def generate_virus(root_directory: Directory, virus_id: int = -1, n: int = 1):
     """
     filename = generate_filename(True)
     if virus_id != -1:
-        print(virus_id)
-        root_directory.add_entry(VirusFile(virus_id, filename, root_directory))
-        return
+        virus_file = VirusFile(virus_id, filename, root_directory)
+        root_directory.add_entry(virus_file)
+        virus_file_2nd_parent = "/".join(str(virus_file).split("/")[:-2])
+        return virus_file_2nd_parent
 
+    virus_files = {}
     for virus in range(n):
         target = choose_random_directory(root_directory)
-        generate_virus(target, virus + 1)
+        virus_files[str(virus + 1)] = generate_virus(target, virus + 1)
+    return virus_files
 
 
 def generate_directory(parent: Directory, depth: int = 0) -> Tuple[Directory, int]:
