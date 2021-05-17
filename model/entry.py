@@ -1,3 +1,5 @@
+from typing import Optional
+
 from model.abstract import Serializable, Sizable
 from model.error import InvalidNameError
 
@@ -20,7 +22,7 @@ class Entry(Serializable, Sizable):
                 raise InvalidNameError(f"{invalid_char} cannot exist in entry name.")
         self.__name: str = name
         self.__parent = parent
-        self.__original_parent = parent
+        self.__original_parent = str(parent)
 
     def __str__(self):
         if self.__parent:
@@ -49,11 +51,15 @@ class Entry(Serializable, Sizable):
 
     def set_name(self, name: str):
         """Sets the name of the Entry"""
-        self.__name: str = name
+        self.__name = name
 
     def set_parent(self, parent: 'Directory'):
         """Sets the parent Directory of this Entry"""
-        self.__parent= parent
+        self.__parent = parent
+
+    def set_original_parent(self, parent: 'Directory'):
+        """Sets the original parent Directory of this Entry"""
+        self.__original_parent = parent
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -76,11 +82,32 @@ class Entry(Serializable, Sizable):
         """
         return self.__name.startswith(".")
 
+    def restore(self, root: 'Directory') -> Optional['Entry']:
+        """Restores the entry to its original parent
+        when the file was created if the parent was given
+
+        :param root: The root Directory of the entire filesystem which is used to
+            parse through the original parent to set the original parent after the file is restored
+        """
+        print(self.get_parent(), self.__original_parent)
+        if self.get_parent():
+            self.get_parent().remove_entry(self)
+            target = root
+            orig_parent_split = self.__original_parent.split("/")
+            for entry in orig_parent_split[1:]:  # Ignore the root entry since that's where we are at
+                target = target.get_entry(entry)
+                if target is None:
+                    return
+            self.set_parent(target)
+            self.__parent.add_entry(self)
+            return self
+
     # # # # # # # # # # # # # # # # # # # #
 
     def to_json(self) -> dict:
         return {
             "type": "Entry",
+            "parent": self.__original_parent,
             "name": self.get_name()}
 
     # # # # # # # # # # # # # # # # # # # #
@@ -97,4 +124,6 @@ class Entry(Serializable, Sizable):
             raise TypeError(f"Type of JSON object must match (\"{json['type']}\" != \"Entry\")")
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create Entry object")
-        return Entry(json["name"])
+        entry = Entry(json["name"])
+        entry.__original_parent = json["parent"]
+        return entry

@@ -40,6 +40,7 @@ class NormalFile(Entry):
         return {
             "type": "NormalFile",
             "name": self.get_name(),
+            "parent": self.get_original_parent(),
             "size": self.get_size()}
 
     # # # # # # # # # # # # # # # # # # # #
@@ -57,4 +58,6 @@ class NormalFile(Entry):
         if "name" not in json:
             raise KeyError("\"name\" key must exist to create NormalFile object")
 
-        return NormalFile(json["name"], size=json.get("size"))
+        file_obj = NormalFile(json["name"], size=json.get("size"))
+        file_obj.set_original_parent(json["parent"])
+        return file_obj
