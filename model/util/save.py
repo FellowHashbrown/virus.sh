@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-from model import Directory, VirusFile, NormalFile
+from model import Directory, VirusFile
 from model.error import InvalidNameError
 from model.util import generate_filesystem, Hexable, choose_random_directory, generate_virus
 
@@ -39,8 +39,8 @@ class Save:
 
     INVALID_CHARS = "?&:;|[]*,\""
     SAVE_FOLDER = f"{Path.home()}/virus.shSaves"
-    MINIMUM_SPEED = 3
-    SPEED_INTERVAL = 3
+    MINIMUM_SPEED = 2
+    SPEED_INTERVAL = 2
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -55,7 +55,7 @@ class Save:
         self.__normal_files = self.__deleted_normal_files = self.__restored = 0
         self.__tracked_files = []
         self.__deletion_log: List[Tuple[int, str, str]] = []
-        self.__speed = 60  # Time in seconds that a file is deleted
+        self.__speed = 30  # Time in seconds that a file is deleted
         self.__virus_file_locations = {}
 
     # # # # # # # # # # # # # # # # # # # #
