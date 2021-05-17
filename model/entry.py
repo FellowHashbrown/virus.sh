@@ -20,6 +20,7 @@ class Entry(Serializable, Sizable):
                 raise InvalidNameError(f"{invalid_char} cannot exist in entry name.")
         self.__name: str = name
         self.__parent = parent
+        self.__original_parent = parent
 
     def __str__(self):
         if self.__parent:
@@ -63,6 +64,11 @@ class Entry(Serializable, Sizable):
     def get_parent(self) -> 'Directory':
         """Returns the parent Directory of this Entry"""
         return self.__parent
+
+    def get_original_parent(self) -> 'Directory':
+        """Returns the original Directory the Entry started out in
+        before being deleted"""
+        return self.__original_parent
 
     def is_hidden(self) -> bool:
         """Returns whether or not this Entry is hidden which is True
