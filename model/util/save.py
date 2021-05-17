@@ -191,6 +191,7 @@ class Save:
             "normal_files": {
                 "deleted": self.__deleted_normal_files,
                 "total": self.__normal_files,
+                "restored": self.__restored,
                 "log": self.__deletion_log
             }
         }
@@ -217,4 +218,5 @@ class Save:
 
         self.__deleted_normal_files = save_json["normal_files"]["deleted"]
         self.__normal_files = save_json["normal_files"]["total"]
+        self.__restored = save_json["normal_files"]["restored"]
         self.__deletion_log = save_json["normal_files"]["log"]

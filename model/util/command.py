@@ -169,6 +169,7 @@ def restore(console, args):
         if file:
             if isinstance(file, NormalFile):
                 file = file.restore(console.get_root())
+                console.get_save().restored_file()
                 result.append(f"{file.get_name()} restored to {str(file)}")
             else:
                 result.append(f"restore: {file.get_name()}: is not a valid file")
