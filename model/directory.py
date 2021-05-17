@@ -83,6 +83,10 @@ class Directory(Listable, Entry):
         return target
 
     def add_entries(self, *entries: Entry):
+        """Adds a list of new entries to this Directory.
+
+        If the name of the Entry given already exists, it will not be added.
+        """
         for entry in entries:
             self.add_entry(entry)
 
@@ -94,16 +98,19 @@ class Directory(Listable, Entry):
 
         :param show_hidden: Whether or not to show hidden files or directories
         """
-        contents = []
+        directories = []
+        files = []
         if show_hidden:
-            contents.extend([".", ".."])
+            directories.extend([".", ".."])
         for entry in self.get_entries():
             if not entry.is_hidden() or show_hidden:
                 if isinstance(entry, SaveFile):
-                    contents.append(entry.get_bytes())
-                else:
-                    contents.append(entry.get_name())
-        return "\n".join(contents)
+                    files.append(entry.get_bytes())
+                elif isinstance(entry, Directory):
+                    directories.append(entry.get_name())
+                elif isinstance(entry, NormalFile):
+                    files.append(entry.get_name())
+        return "\n".join(directories + files)
 
     def to_json(self) -> dict:
         return {
