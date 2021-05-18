@@ -1,6 +1,6 @@
 from script.game import new_game, load_game, delete_game
 from script.options import change_prompt_char, set_theme
-from script.theme import new_theme, edit_theme, delete_theme
+from script.theme import new_theme, delete_theme
 
 
 def run_script(console, command):
@@ -22,9 +22,7 @@ def run_script(console, command):
     elif command.split("/")[-1] == "set_theme.sh" or console["on_set_theme"]:
         return set_theme(console, command)
 
-    elif command.split("/")[-1] == "new_theme.sh" or console["on_new_theme"]:
+    elif command.split("/")[-1] in ["new_theme.sh", "edit_theme.sh"] or console["on_new_theme"] or console["on_edit_theme"]:
         return new_theme(console, command)
-    elif command.split("/")[-1] == "edit_theme.sh" or console["on_edit_theme"]:
-        return edit_theme(console, command)
     elif command.split("/")[-1] == "delete_theme.sh" or console["on_delete_theme"]:
         return delete_theme(console, command)
