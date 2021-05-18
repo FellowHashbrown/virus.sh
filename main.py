@@ -1,5 +1,6 @@
 from tkinter import Tk, Text, END, BOTH
 
+from model.theme import Theme
 from model.console import Console
 
 
@@ -13,7 +14,7 @@ class ConsoleUI(Tk):
         super().__init__()
         self.title("virus.sh")
         self.configure(background="black")
-        self.__console = Console()
+        self.__console = Console(self)
 
         self.__text = Text(self)
         self.__text.configure(font=("Courier New", 15), bg="black", fg="white",
@@ -42,18 +43,8 @@ class ConsoleUI(Tk):
 
         self.__virus = None
 
-        for theme_name in self.__console.get_themes():
-            theme = self.__console.get_themes()[theme_name]
-            self.__text.tag_configure(f"{theme_name}_game", background=theme["game"]["bg"],
-                                      foreground=theme["game"]["fg"])
-            self.__text.tag_configure(f"{theme_name}_menu", background=theme["menu"]["bg"],
-                                      foreground=theme["menu"]["fg"])
-            self.__text.tag_configure(f"{theme_name}_curdir", background=theme["curdir"]["bg"],
-                                      foreground=theme["curdir"]["fg"])
-            self.__text.tag_configure(f"{theme_name}_directory", background=theme["directory"]["bg"],
-                                      foreground=theme["directory"]["fg"])
-            self.__text.tag_configure(f"{theme_name}_file", background=theme["file"]["bg"],
-                                      foreground=theme["file"]["fg"])
+        for theme in self.__console.get_themes():
+            self.add_theme(theme[0])
 
     def on_up_arrow(self, _):
         """This overrides the up arrow key bind to mimic
@@ -218,15 +209,30 @@ class ConsoleUI(Tk):
             self.__text.delete("insert -1 chars", "insert")
         return "break"
 
+    # # # # # # # # # # # # # # # # # # # #
+
+    def add_theme(self, theme: Theme):
+        """Adds a new theme configuration to the Text widget"""
+        self.__text.tag_configure(f"{theme.get_name()}_game", background=theme["game"]["bg"],
+                                  foreground=theme["game"]["fg"])
+        self.__text.tag_configure(f"{theme.get_name()}_menu", background=theme["menu"]["bg"],
+                                  foreground=theme["menu"]["fg"])
+        self.__text.tag_configure(f"{theme.get_name()}_curdir", background=theme["curdir"]["bg"],
+                                  foreground=theme["curdir"]["fg"])
+        self.__text.tag_configure(f"{theme.get_name()}_directory", background=theme["directory"]["bg"],
+                                  foreground=theme["directory"]["fg"])
+        self.__text.tag_configure(f"{theme.get_name()}_file", background=theme["file"]["bg"],
+                                  foreground=theme["file"]["fg"])
+
     def insert_prompt(self):
         """Inserts the prompt into the text field"""
         game_indices, menu_indices, curdir_indices = self.__console.get_prompt_indices()
         self.__text.mark_set("insert", END)
         cur_line = self.__text.index("insert").split(".")[0]
         self.__text.insert("end", f"{self.__console.get_prompt()}")
-        self.__text.tag_add("obsidian_game", f"{cur_line}.{game_indices[0]}", f"{cur_line}.{game_indices[1]}")
-        self.__text.tag_add("obsidian_menu", f"{cur_line}.{menu_indices[0]}", f"{cur_line}.{menu_indices[1]}")
-        self.__text.tag_add("obsidian_curdir", f"{cur_line}.{curdir_indices[0]}", f"{cur_line}.{curdir_indices[1]}")
+        self.__text.tag_add(f"{self.__console.get_current_theme()}_game", f"{cur_line}.{game_indices[0]}", f"{cur_line}.{game_indices[1]}")
+        self.__text.tag_add(f"{self.__console.get_current_theme()}_menu", f"{cur_line}.{menu_indices[0]}", f"{cur_line}.{menu_indices[1]}")
+        self.__text.tag_add(f"{self.__console.get_current_theme()}_curdir", f"{cur_line}.{curdir_indices[0]}", f"{cur_line}.{curdir_indices[1]}")
 
     def insert_ls(self, result: str):
         """Inserts the result of ls and colorizes it"""
@@ -248,7 +254,9 @@ class ConsoleUI(Tk):
         cur_line = int(self.__text.index("insert").split(".")[0])
         for i in range(len(result_list)):
             is_dir = i < len(dir_indices)
-            self.__text.tag_add("obsidian_directory" if is_dir else "obsidian_file",
+            self.__text.tag_add(f"{self.__console.get_current_theme()}_directory"
+                                if is_dir
+                                else f"{self.__console.get_current_theme()}_file",
                                 f"{cur_line - len(result_list) + i + 1}.{indices[i][0]}",
                                 f"{cur_line - len(result_list) + i + 1}.{indices[i][1]}")
 
