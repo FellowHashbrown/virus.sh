@@ -1,7 +1,10 @@
+import os
+from pathlib import Path
 from typing import Union
 
 from model.abstract import Serializable
 from model.theme import Element
+from model.util import Hexable
 
 
 class Theme(Serializable):
@@ -21,12 +24,15 @@ class Theme(Serializable):
                      directory = Element.from_json(json.get("directory")),
                      file = Element.from_json(json.get("file")))
 
+    SAVE_FOLDER = f"{Path.home()}/virus.sh/themes"
+
     def __init__(self, name: str, *,
-                 game: Element = None, menu: Element = None,
-                 curdir: Element = None, directory: Element = None,
-                 file: Element = None):
+                 main: Element = None, game: Element = None,
+                 menu: Element = None, curdir: Element = None,
+                 directory: Element = None, file: Element = None):
         self.__name = name
 
+        self.__main = main or Element()
         self.__game = game or Element()
         self.__menu = menu or Element()
         self.__curdir = curdir or Element()
@@ -44,6 +50,8 @@ class Theme(Serializable):
             return self.__directory
         elif key == "file":
             return self.__file
+        elif key == "main":
+            return self.__main
 
     def __setitem__(self, key: str, value: Union[Element, dict]):
         if isinstance(value, dict):
@@ -58,6 +66,8 @@ class Theme(Serializable):
             self.__directory = value
         elif key == "file":
             self.__file = value
+        elif key == "main":
+            self.__main = value
 
     def get_name(self) -> str:
         """Returns the name of this Theme"""
@@ -66,10 +76,30 @@ class Theme(Serializable):
     def to_json(self) -> dict:
         """Returns a JSON representation of this Theme object"""
         return {
-            "name": self.get_name(),
+            "main": self.__main.to_json(),
             "game": self.__game.to_json(),
             "menu": self.__menu.to_json(),
             "curdir": self.__curdir.to_json(),
             "directory": self.__directory.to_json(),
             "file": self.__file.to_json()}
 
+    def save(self):
+        """Saves the theme into the themes folder in the home path"""
+
+        # Create the themes folder if necessary
+        if not os.path.exists(Theme.SAVE_FOLDER):
+            os.makedirs(Theme.SAVE_FOLDER)
+
+        Hexable.save(self.to_json(), f"{Theme.SAVE_FOLDER}/{self.get_name()}.hex")
+
+    def load(self):
+        """Loads the theme with this name from the themes folder in the home path"""
+
+        theme_json = Hexable.load(f"{Theme.SAVE_FOLDER}/{self.get_name()}.hex")
+
+        self.__main = Element.from_json(theme_json["main"])
+        self.__game = Element.from_json(theme_json["game"])
+        self.__menu = Element.from_json(theme_json["menu"])
+        self.__curdir = Element.from_json(theme_json["curdir"])
+        self.__directory = Element.from_json(theme_json["directory"])
+        self.__file = Element.from_json(theme_json["file"])

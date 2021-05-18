@@ -7,7 +7,7 @@ from model.util import Hexable
 class Options:
 
     __instance = None
-    OPTIONS_FILE = f"{Path.home()}/options.hex"
+    SAVE_FOLDER = f"{Path.home()}/virus.sh"
 
     @staticmethod
     def get_instance():
@@ -20,7 +20,7 @@ class Options:
         options_json = {
             "prompt_char": Options.get_instance().get_prompt_char()
         }
-        Hexable.save(options_json, Options.OPTIONS_FILE)
+        Hexable.save(options_json, f"{Options.SAVE_FOLDER}/options.hex")
 
     def __init__(self):
         if Options.__instance is None:
@@ -28,9 +28,13 @@ class Options:
             # Defaults
             prompt_char = "$"
 
+            # Create the game directory if necessary
+            if not os.path.exists(Options.SAVE_FOLDER):
+                os.makedirs(Options.SAVE_FOLDER)
+
             # Try loading the file
-            if os.path.exists(Options.OPTIONS_FILE):
-                options_json = Hexable.load(Options.OPTIONS_FILE)
+            if os.path.exists(f"{Options.SAVE_FOLDER}/options.hex"):
+                options_json = Hexable.load(f"{Options.SAVE_FOLDER}/options.hex")
                 prompt_char = options_json["prompt_char"]
 
             # Set the instance variables

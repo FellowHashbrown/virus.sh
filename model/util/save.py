@@ -38,7 +38,7 @@ class Save:
         return saves
 
     INVALID_CHARS = "?&:;|[]*,\""
-    SAVE_FOLDER = f"{Path.home()}/virus.shSaves"
+    SAVE_FOLDER = f"{Path.home()}/virus.sh/saves"
     MINIMUM_SPEED = 2
     SPEED_INTERVAL = 2
 
@@ -173,7 +173,7 @@ class Save:
 
         # Create the game saves directory if necessary
         if not os.path.exists(Save.SAVE_FOLDER):
-            os.mkdir(Save.SAVE_FOLDER)
+            os.makedirs(Save.SAVE_FOLDER)
 
         # Create this saves' directory
         if not os.path.exists(f"{Save.SAVE_FOLDER}/{self.get_username()}"):
