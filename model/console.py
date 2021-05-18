@@ -19,6 +19,7 @@ class Console:
         self.__console_ui = console_ui
         self.__save = None
         self.__in_play = False
+        self.__in_tutorial = False
         self.__current_dir = None
         self.__previous_dir = None
 
@@ -161,6 +162,14 @@ class Console:
         """Sets the game as being currently played"""
         self.__in_play = True
 
+    def is_in_tutorial(self) -> bool:
+        """Returns whether or not the player is currently dealing with a tutorial"""
+        return self.__in_tutorial
+
+    def in_tutorial(self):
+        """Sets the player as being in a tutorial"""
+        self.__in_tutorial = True
+
     # # # # # # # # # # # # # # # # # # # #
 
     def parse(self, cmd: str) -> Optional[str]:
@@ -175,22 +184,25 @@ class Console:
             return ls(self, args)
         elif cmd == "cd":
             return cd(self, args)
-        elif cmd == "cat" and self.__in_play:
+        elif cmd == "cat" and (self.__in_play or self.__in_tutorial):
             return cat(self, args)
-        elif cmd == "rm" and self.__in_play:
+        elif cmd == "rm" and (self.__in_play or self.__in_tutorial):
             return rm(self, args)
-        elif cmd == "track" and self.__in_play:
+        elif cmd == "track" and (self.__in_play or self.__in_tutorial):
             return track(self, args)
-        elif cmd == "mntr" and self.__in_play:
+        elif cmd == "mntr" and (self.__in_play or self.__in_tutorial):
             return mntr(self, args)
-        elif cmd == "trace" and self.__in_play:
+        elif cmd == "trace" and (self.__in_play or self.__in_tutorial):
             return trace(self, args)
-        elif cmd == "restore" and self.__in_play:
+        elif cmd == "restore" and (self.__in_play or self.__in_tutorial):
             return restore(self, args)
         elif cmd == "exit":
             if self.__in_play:
                 self.__in_play = False
                 self.__save.save()
+                return "@main_menu"
+            if self.__in_tutorial:
+                self.__in_tutorial = False
                 return "@main_menu"
             return "@exit"
 
