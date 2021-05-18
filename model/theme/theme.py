@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 from model.abstract import Serializable
 from model.theme import Element
@@ -13,6 +13,28 @@ class Theme(Serializable):
     """
 
     @staticmethod
+    def load_themes() -> List['Theme']:
+        """Loads all the themes from the Theme folder and returns them in a list"""
+
+        # Check if the save folder exists; If not, create it
+        if not os.path.exists(Theme.SAVE_FOLDER):
+            os.makedirs(Theme.SAVE_FOLDER)
+
+        files = []
+        for entry in os.listdir(Theme.SAVE_FOLDER):
+            if os.path.isfile(f"{Theme.SAVE_FOLDER}/{entry}"):
+                name = entry[:entry.find(".")]
+                files.append(Theme(name))
+        themes = []
+        for i in range(len(files)):
+            try:
+                themes.append(files[i])
+                themes[i].load()
+            except FileNotFoundError:
+                print(f"issue loading {files[i].get_name()}")
+        return themes
+
+    @staticmethod
     def from_json(json: dict):
         """Returns a Theme object given the specified JSON object"""
         if json.get("name") is None:
@@ -23,6 +45,8 @@ class Theme(Serializable):
                      curdir = Element.from_json(json.get("curdir")),
                      directory = Element.from_json(json.get("directory")),
                      file = Element.from_json(json.get("file")))
+
+    # # # # # # # # # # # # # # # # # # # #
 
     SAVE_FOLDER = f"{Path.home()}/virus.sh/themes"
 
@@ -69,9 +93,13 @@ class Theme(Serializable):
         elif key == "main":
             self.__main = value
 
+    # # # # # # # # # # # # # # # # # # # #
+
     def get_name(self) -> str:
         """Returns the name of this Theme"""
         return self.__name
+
+    # # # # # # # # # # # # # # # # # # # #
 
     def to_json(self) -> dict:
         """Returns a JSON representation of this Theme object"""
@@ -82,6 +110,8 @@ class Theme(Serializable):
             "curdir": self.__curdir.to_json(),
             "directory": self.__directory.to_json(),
             "file": self.__file.to_json()}
+
+    # # # # # # # # # # # # # # # # # # # #
 
     def save(self):
         """Saves the theme into the themes folder in the home path"""
