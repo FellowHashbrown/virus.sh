@@ -224,6 +224,14 @@ class ConsoleUI(Tk):
         self.__text.tag_configure(f"{theme.get_name()}_file", background=theme["file"]["bg"],
                                   foreground=theme["file"]["fg"])
 
+    def remove_theme(self, theme: Theme):
+        """Removes an existing theme from the configuration in the Text widget"""
+        self.__text.tag_delete(f"{theme.get_name()}_game")
+        self.__text.tag_delete(f"{theme.get_name()}_menu")
+        self.__text.tag_delete(f"{theme.get_name()}_curdir")
+        self.__text.tag_delete(f"{theme.get_name()}_directory")
+        self.__text.tag_delete(f"{theme.get_name()}_file")
+
     def insert_prompt(self):
         """Inserts the prompt into the text field"""
         game_indices, menu_indices, curdir_indices = self.__console.get_prompt_indices()
