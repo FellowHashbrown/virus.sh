@@ -137,12 +137,15 @@ class Save:
         the specified virus file to a new, random location
         In addition, a new virus file is generated somewhere on the system
         """
+        self.__virus_files += 1
         if self.__speed > Save.MINIMUM_SPEED:
             self.__speed -= Save.SPEED_INTERVAL
+        while len(self.__tracked_files) < self.__virus_files:
+            self.__tracked_files.append(None)
         if str(virus_file) in self.__tracked_files:
-            self.__tracked_files.remove(str(virus_file))
+            index = self.__tracked_files.index(str(virus_file))
+            self.__tracked_files[index] = None
 
-        self.__virus_files += 1
         new_dir = choose_random_directory(self.__root)
         old_dir = virus_file.get_parent()
         old_dir.remove_entry(virus_file)
@@ -158,7 +161,10 @@ class Save:
         """
         self.__deleted_virus_files += 1
         old_dir = virus_file.get_parent()
-        old_dir.remove_entry(old_dir)
+        old_dir.remove_entry(virus_file)
+        if str(virus_file) in self.__tracked_files:
+            index = self.__tracked_files.index(str(virus_file))
+            self.__tracked_files[index] = None
 
     def restored_file(self):
         """Restores the specified file to its original parent and returns
