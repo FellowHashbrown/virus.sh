@@ -89,7 +89,6 @@ class Entry(Serializable, Sizable):
         :param root: The root Directory of the entire filesystem which is used to
             parse through the original parent to set the original parent after the file is restored
         """
-        print(self.get_parent(), self.__original_parent)
         if self.get_parent():
             self.get_parent().remove_entry(self)
             target = root
