@@ -21,7 +21,7 @@ class Save:
 
         # Check if the save folder exists; If not, create it
         if not os.path.exists(Save.SAVE_FOLDER):
-            os.mkdir(Save.SAVE_FOLDER)
+            os.makedirs(Save.SAVE_FOLDER)
 
         files = []
         for entry in os.listdir(Save.SAVE_FOLDER):
