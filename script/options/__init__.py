@@ -1,0 +1,1 @@
+from script.options.change_prompt_char import change_prompt_char
