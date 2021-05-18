@@ -1,8 +1,7 @@
 from typing import List, Optional, Tuple, Union
 
 from model import Directory, NormalFile, SaveFile
-from model.error import InvalidNameError
-from model.theme import Theme, Element
+from model.theme import Theme
 from model.util import *
 
 from script import run_script
@@ -39,7 +38,7 @@ class Console:
         self.__virus = None
         self.__saves = []
         self.__themes = []
-        self.__current_theme = None
+        self.__current_theme = Options.get_instance().get_last_theme()
 
         self.main_menu()
 

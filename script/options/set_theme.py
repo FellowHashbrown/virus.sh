@@ -1,4 +1,4 @@
-from model.util import ls
+from model.util import ls, Options
 
 
 def set_theme(console, command):
@@ -18,5 +18,6 @@ def set_theme(console, command):
         for theme, _ in console.get_themes():
             if theme.get_name() == command:
                 console.set_current_theme(command)
+                Options.get_instance().set_last_theme(command)
                 return f"{theme.get_name()} set as new theme"
         return f"{command} is not a valid theme"
