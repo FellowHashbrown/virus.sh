@@ -59,8 +59,9 @@ def cd(console, args):
     if len(args) > 1:
         return "usage: cd <directory>"
     if len(args) == 0:
-        while console.get_current_dir().get_parent():
-            console.set_current_dir(console.get_current_dir().get_parent())
+        usr_dir = console.get_root().get_entry("usr")
+        username = console.get_save().get_username()
+        console.set_current_dir(usr_dir.get_entry(username))
         return
 
     target = args[0].split("/")
