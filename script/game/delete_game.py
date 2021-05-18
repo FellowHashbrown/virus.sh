@@ -25,7 +25,7 @@ def delete_game(console, command):
                 if gamesave.get_username() == command:
                     on_verify = {"value": True,
                                  "target": command}
-                    return f"@prompt:Are you sure you want to delete {command}?"
+                    return f"@prompt:Are you sure you want to delete {command}? (yes/no)"
             return f"No gamesave found for {command}"
         deleted = command.lower() in ["yes", "y"]
         target = on_verify["target"]
