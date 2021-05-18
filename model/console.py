@@ -221,14 +221,12 @@ class Console:
     def add_theme(self, theme: Theme):
         """Adds a new theme to the theme list"""
         theme_str = ("name: {}\n" +
-                     "\tmain (bg/fg): {}/{}\n" +
                      "\tgame (bg/fg): {}/{}\n" +
                      "\tmenu (bg/fg): {}/{}\n" +
                      "\tcurrent directory (bg/fg): {}/{}\n" +
                      "\tdirectories (bg/fg): {}/{}\n" +
                      "\tfiles (bg/fg): {}/{}").format(
             theme.get_name(),
-            theme["main"]["bg"], theme["main"]["fg"],
             theme["game"]["bg"], theme["game"]["fg"],
             theme["menu"]["bg"], theme["menu"]["fg"],
             theme["curdir"]["bg"], theme["curdir"]["fg"],
@@ -262,14 +260,12 @@ class Console:
         self.__themes: List[Union[Tuple[Theme, str], Theme]] = Theme.load_themes()
         for i in range(len(self.__themes)):
             theme_str = ("name: {}\n" +
-                         "\tmain (bg/fg): {}/{}\n" +
                          "\tgame (bg/fg): {}/{}\n" +
                          "\tmenu (bg/fg): {}/{}\n" +
                          "\tcurrent directory (bg/fg): {}/{}\n" +
                          "\tdirectories (bg/fg): {}/{}\n" +
                          "\tfiles (bg/fg): {}/{}").format(
                 self.__themes[i].get_name(),
-                self.__themes[i]["main"]["bg"], self.__themes[i]["main"]["fg"],
                 self.__themes[i]["game"]["bg"], self.__themes[i]["game"]["fg"],
                 self.__themes[i]["menu"]["bg"], self.__themes[i]["menu"]["fg"],
                 self.__themes[i]["curdir"]["bg"], self.__themes[i]["curdir"]["fg"],
