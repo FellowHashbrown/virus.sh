@@ -164,6 +164,8 @@ def restore(console, args):
     if console.get_current_dir() != console.get_trash():
         return "restore: must be in Trash directory"
 
+    if len(args) == 1 and args[0] == "*":
+        args = [entry.get_name() for entry in console.get_trash().get_entries()]
     result = []
     for entry in args:
         file = __dir_arg_parse(console.get_trash(), entry)
