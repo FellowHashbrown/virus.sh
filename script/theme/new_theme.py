@@ -32,13 +32,16 @@ def new_theme(console, command):
             if new_theme_stage == -1:
                 new_theme_name = command
                 new_theme_stage += 1
-                return "@prompt:Enter the main_bg color in the hex color format (#000000): "
+                return f"@prompt:Enter the {new_theme_names[new_theme_stage]} color in the hex color format (#000000): "
             elif new_theme_stage < len(new_theme_names):
                 if len(command) == 0:
                     if new_theme_stage % 2 == 0:  # Background
                         command = "black"
                     else:   # Foreground
                         command = "white"
+                else:
+                    if not command.startswith("#"):
+                        command = f"#{command}"
                 new_theme_config[new_theme_stage] = command
                 new_theme_stage += 1
                 if new_theme_stage < len(new_theme_names):
