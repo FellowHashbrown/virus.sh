@@ -84,6 +84,14 @@ class Console:
 
     # # # # # # # # # # # # # # # # # # # #
 
+    def get_saves(self) -> List[Save]:
+        """Returns the list of saves that exist in the game"""
+        return list(self.__saves)
+
+    def get_save(self) -> Save:
+        """Returns the current save being used by the console"""
+        return self.__save
+
     def set_save(self, username: str):
         """Sets the save object being used for the Console
 
@@ -96,23 +104,15 @@ class Console:
         self.__current_dir = self.__save.get_root().get_entry("usr").get_entry(username)
         self.__virus = Virus(self.__save, self.game_over)
 
-    def set_current_dir(self, directory: Directory):
-        """Sets the current directory for the console"""
-        self.__current_dir = directory
-
-    def set_previous_dir(self, directory: Directory):
-        """Sets the previous directory for the console to be used later after leaving the Trash directory"""
-        self.__previous_dir = directory
+    def remove_save(self, username: str):
+        """Removes the save with the specified username from the Saves list"""
+        for i in range(len(self.__saves)):
+            if self.__saves[i][0].get_username() == username:
+                self.__saves.pop(i)
+                self.__current_dir.get_entry("gameSaves").remove_entry(username)
+                break
 
     # # # # # # # # # # # # # # # # # # # #
-
-    def get_saves(self) -> List[Save]:
-        """Returns the list of saves that exist in the game"""
-        return list(self.__saves)
-
-    def get_save(self) -> Save:
-        """Returns the current save being used by the console"""
-        return self.__save
 
     def get_root(self) -> Directory:
         """Returns the very root of the filesystem"""
@@ -122,14 +122,6 @@ class Console:
         """Returns the Trash directory"""
         return self.__save.get_trash()
 
-    def remove_save(self, username: str):
-        """Removes the save with the specified username from the Saves list"""
-        for i in range(len(self.__saves)):
-            if self.__saves[i][0].get_username() == username:
-                self.__saves.pop(i)
-                self.__current_dir.get_entry("gameSaves").remove_entry(username)
-                break
-
     def get_current_dir(self) -> Directory:
         """Returns the current directory"""
         return self.__current_dir
@@ -137,6 +129,16 @@ class Console:
     def get_previous_dir(self) -> Directory:
         """Returns the previous directory which is what is used when going back from the Trash"""
         return self.__previous_dir
+
+    def set_current_dir(self, directory: Directory):
+        """Sets the current directory for the console"""
+        self.__current_dir = directory
+
+    def set_previous_dir(self, directory: Directory):
+        """Sets the previous directory for the console to be used later after leaving the Trash directory"""
+        self.__previous_dir = directory
+
+    # # # # # # # # # # # # # # # # # # # #
 
     def get_prompt(self) -> str:
         """Returns the command line prompt in the console"""
@@ -205,6 +207,8 @@ class Console:
         self.__in_play = False
         return "@game_over"
 
+    # # # # # # # # # # # # # # # # # # # #
+
     def get_themes(self) -> list:
         """Loads the themes from the theme file into the console"""
         return self.__themes
@@ -231,9 +235,26 @@ class Console:
             theme["curdir"]["bg"], theme["curdir"]["fg"],
             theme["directory"]["bg"], theme["directory"]["fg"],
             theme["file"]["bg"], theme["file"]["fg"])
+        if Options.get_instance().get_last_theme() == theme.get_name():
+            self.__current_theme = theme.get_name()
         theme = (theme, theme_str)
         self.__themes.append(theme)
         self.__console_ui.add_theme(theme[0])
+        theme_dir = self.__current_dir.get_entry("themes")
+        theme_dir.add_entry(SaveFile(theme[0].get_name(), theme[1], theme_dir))
+
+    def remove_theme(self, theme: Theme):
+        """Removes an existing theme from the game, if it exists"""
+        for i in range(len(self.__themes)):
+            if self.__themes[i][0].get_name() == theme.get_name():
+                if theme.get_name() == self.__current_theme:
+                    self.__current_theme = None
+                self.__current_dir.get_entry("themes").remove_entry(theme.get_name())
+                self.__themes.pop(i)
+                self.__console_ui.remove_theme(theme)
+                break
+
+    # # # # # # # # # # # # # # # # # # # #
 
     def load_saves(self):
         """Loads the saves from the Save directory"""
