@@ -46,6 +46,16 @@ class ConsoleUI(Tk):
         for theme in self.__console.get_themes():
             self.add_theme(theme[0])
 
+    def reset_mark(self):
+        """Resets the mark to the position it should be at before
+        any typing or keypress events occur
+        """
+        self.__text.mark_set("insert", END)
+        cur_line, cur_index = self.__text.index("insert").split(".")
+        cur_line, cur_index = int(cur_line), int(cur_index)
+        target_index = len(self.__current_line) - self.__current_index
+        self.__text.mark_set("insert", f"{cur_line}.{cur_index - target_index}")
+
     def on_up_arrow(self, _):
         """This overrides the up arrow key bind to mimic
         loading previous commands run in the console
@@ -78,6 +88,7 @@ class ConsoleUI(Tk):
         """This overrides the left arrow key bind to move the insert
         cursor left until the beginning of the current prompt
         """
+        self.reset_mark()
         if self.__current_index > 0:
             self.__current_index -= 1
             if self.__current_index < 0:
@@ -90,6 +101,7 @@ class ConsoleUI(Tk):
         """This overrides the right arrow key bind to move the insert
         cursor right until the end of the text
         """
+        self.reset_mark()
         if self.__current_index <= len(self.__current_line):
             self.__current_index += 1
         else:
@@ -99,6 +111,7 @@ class ConsoleUI(Tk):
         """This overrides the tab key bind to try to
         auto-complete any directory entries
         """
+        self.reset_mark()
 
         # Try splitting the current line by spaces in order to get the current
         # line and split the possible directory by using the "/" as a separator
@@ -143,6 +156,7 @@ class ConsoleUI(Tk):
         """This overrides the keypress event to insert text inside the current line properly
         whether the cursor is at the beginning of the current line or the end
         """
+        self.reset_mark()
         if len(self.__current_line) != self.__current_index:
             line_list = list(self.__current_line)
             line_list.insert(self.__current_index, event.char)
@@ -156,8 +170,9 @@ class ConsoleUI(Tk):
         given and adds the command to the list of previous commands
         """
         result = self.__console.parse(self.__current_line)
-        self.__prev_commands.insert(0, self.__current_line)
-        self.__prev_index = -1
+        if not self.__console.is_running_script():
+            self.__prev_commands.insert(0, self.__current_line)
+            self.__prev_index = -1
         cleared = result == "@clear"
         prompted = False
         if result:
@@ -199,6 +214,7 @@ class ConsoleUI(Tk):
         If the text cursor is set in the middle of the line, only remove that part from the current line
         that precedes the cursor.
         """
+        self.reset_mark()
         if self.__current_index > 0 and len(self.__current_line) > 0:
             self.__current_index -= 1
             if self.__current_index == len(self.__current_line):

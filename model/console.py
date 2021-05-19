@@ -83,6 +83,12 @@ class Console:
         elif key == "on_delete_theme":
             self.__on_delete_theme = value
 
+    def is_running_script(self) -> bool:
+        """Returns whether or not the player is currently running a faksecript"""
+        return (self.__on_new_game or self.__on_load_game or self.__on_delete_game or
+                self.__on_prompt_char or self.__on_set_theme or self.__in_tutorial or
+                self.__on_new_theme or self.__on_edit_theme or self.__on_delete_theme)
+
     # # # # # # # # # # # # # # # # # # # #
 
     def get_saves(self) -> List[Save]:
