@@ -70,14 +70,17 @@ def cd(console, args):
         if tgt == ".":
             continue
         elif tgt == "..":
-            if console.is_in_play() and current_dir == console.get_save().get_trash():
+            if (console.is_in_play() or console.is_in_tutorial()) and current_dir == console.get_save().get_trash():
                 console.set_current_dir(console.get_previous_dir())
             elif current_dir.get_parent():
                 console.set_current_dir(current_dir.get_parent())
             continue
-        elif tgt == "Trash" and console.is_in_play():
+        elif tgt == "Trash" and (console.is_in_play() or console.is_in_tutorial()):
             console.set_previous_dir(console.get_current_dir())
-            console.set_current_dir(console.get_save().get_trash())
+            if console.is_in_play():
+                console.set_current_dir(console.get_save().get_trash())
+            elif console.is_in_tutorial():
+                console.set_current_dir(console.get_tutorial_trash())
             return
         found = False
         for entry in current_dir.get_entries():
@@ -246,3 +249,23 @@ def track(console, args):
         if tgt:
             console.get_save().track_virus(target_number, tgt)
     return "\n".join(messages)
+
+
+def tut(_, args):
+    if len(args) != 0:
+        return "usage: tut"
+    return "Type ./tutorial.sh"
+
+
+def help_command():
+    return ("ls [directory] -> Lists the specified directory, or the current one if none is given\n" +
+            "cd [directory] -> Changes the current directory, or moves to the beginning directory if none is given\n" +
+            "cat <file> -> Prints out the contents of a file\n" +
+            "rm [-r] [directory OR file] -> Removes a directory or file and moves it to the Trash\n" +
+            "track [<number> <file> ...] -> Allows you to track a virus file with a number to identify it easier.\n" +
+            "\tIf nothing is given, it will show you the files you're tracking currently.\n" +
+            "trace <file> -> (Can only be used in the Trash directory) Allows you to trace where a file was deleted from\n" +
+            "mntr -> Shows you the most recently deleted file, the speed at which files are deleted by the virus, how\n" +
+            "\tmany virus files you've deleted, and how many files have been deleted by the virus.\n" +
+            "restore <file> -> Restores a file to its original location (Can only be used in the Trash directory)\n" +
+            "help -> Shows this help message!")

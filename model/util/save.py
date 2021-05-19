@@ -127,7 +127,7 @@ class Save:
         """
         while len(self.__tracked_files) < self.__virus_files:
             self.__tracked_files.append(None)
-        if isinstance(file, VirusFile) and 0 <= virus_id < len(self.__tracked_files):
+        if isinstance(file, VirusFile) and 0 < virus_id <= len(self.__tracked_files):
             self.__tracked_files[virus_id - 1] = str(file)
 
     # # # # # # # # # # # # # # # # # # # #
