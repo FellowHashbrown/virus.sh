@@ -22,6 +22,7 @@ class Console:
         self.__in_tutorial = False
         self.__current_dir = None
         self.__previous_dir = None
+        self.__tutorial_trash = None
 
         # Main Menu Script states
         self.__on_new_game = False
@@ -139,6 +140,10 @@ class Console:
         """Sets the previous directory for the console to be used later after leaving the Trash directory"""
         self.__previous_dir = directory
 
+    def get_tutorial_trash(self) -> Directory:
+        """Returns the Trash directory used by the tutorial"""
+        return self.__tutorial_trash
+
     # # # # # # # # # # # # # # # # # # # #
 
     def get_prompt(self) -> str:
@@ -166,9 +171,11 @@ class Console:
         """Returns whether or not the player is currently dealing with a tutorial"""
         return self.__in_tutorial
 
-    def in_tutorial(self):
-        """Sets the player as being in a tutorial"""
-        self.__in_tutorial = True
+    def set_tutorial(self, tutorial: bool):
+        """Sets whether or not the player is in a tutorial"""
+        if Options.get_instance().has_ran_tutorial():
+            self.__current_dir.remove_entry("tutorial.sh")
+        self.__in_tutorial = tutorial
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -178,24 +185,28 @@ class Console:
         cmd, args = cmd[0], cmd[1:]
 
         # Run the commands like normal
-        if cmd == "clear":
+        if cmd == "clear" and not self.__in_tutorial:
             return "@clear"
-        elif cmd == "ls":
+        elif cmd == "ls" and not self.__in_tutorial:
             return ls(self, args)
-        elif cmd == "cd":
+        elif cmd == "cd" and not self.__in_tutorial:
             return cd(self, args)
-        elif cmd == "cat" and (self.__in_play or self.__in_tutorial):
+        elif cmd == "cat" and self.__in_play and not self.__in_tutorial:
             return cat(self, args)
-        elif cmd == "rm" and (self.__in_play or self.__in_tutorial):
+        elif cmd == "rm" and self.__in_play and not self.__in_tutorial:
             return rm(self, args)
-        elif cmd == "track" and (self.__in_play or self.__in_tutorial):
+        elif cmd == "track" and self.__in_play and not self.__in_tutorial:
             return track(self, args)
-        elif cmd == "mntr" and (self.__in_play or self.__in_tutorial):
+        elif cmd == "mntr" and self.__in_play and not self.__in_tutorial:
             return mntr(self, args)
-        elif cmd == "trace" and (self.__in_play or self.__in_tutorial):
+        elif cmd == "trace" and self.__in_play and not self.__in_tutorial:
             return trace(self, args)
-        elif cmd == "restore" and (self.__in_play or self.__in_tutorial):
+        elif cmd == "restore" and self.__in_play and not self.__in_tutorial:
             return restore(self, args)
+        elif cmd == "tut" and not self.__in_play and not self.__in_tutorial:
+            return tut(self, args)
+        elif cmd == "help" and not self.__in_tutorial:
+            return help_command()
         elif cmd == "exit":
             if self.__in_play:
                 self.__in_play = False
@@ -343,4 +354,8 @@ class Console:
         for theme_obj in self.__themes:
             themes.add_entry(SaveFile(theme_obj[0].get_name(), theme_obj[1], themes))
 
+        # Create and add the tutorial script if necessary
+        if not Options.get_instance().has_ran_tutorial():
+            tutorial_file = NormalFile("tutorial.sh", parent=self.__current_dir)
+            self.__current_dir.add_entry(tutorial_file)
         self.__current_dir.add_entries(play_dir, game_saves, options_dir, themes)

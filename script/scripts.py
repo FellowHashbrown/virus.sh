@@ -1,6 +1,7 @@
 from script.game import new_game, load_game, delete_game
 from script.options import change_prompt_char, set_theme
 from script.theme import new_theme, delete_theme
+from script.tutorial import tutorial_script
 
 
 def run_script(console, command):
@@ -26,3 +27,6 @@ def run_script(console, command):
         return new_theme(console, command)
     elif command.split("/")[-1] == "delete_theme.sh" or console["on_delete_theme"]:
         return delete_theme(console, command)
+
+    elif command.split("/")[-1] == "tutorial.sh" or console.is_in_tutorial():
+        return tutorial_script(console, command)
